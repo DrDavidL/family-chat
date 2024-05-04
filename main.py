@@ -65,7 +65,7 @@ st.title("Family Chat")
 
 
 if check_password():
-    st.info("Type your questions at the bottom of the page or use voice input! You may need to right click your Chrome browser tab to unmute this website and also accept the microphone permissions.")
+    st.info("Type your questions at the bottom of the page!")
 
     with st.sidebar:
         st.title('Customization')
