@@ -68,7 +68,7 @@ def generate_image(prompt, model='dall-e-2', n=1, quality='standard', response_f
         st.error(f"Error generating image: {response.text}")
         return None
 
-st.title('OpenAI DALL·E Image Generator')
+st.title('🎨 OpenAI DALL·E Image Generator')
 
 if check_password():
 

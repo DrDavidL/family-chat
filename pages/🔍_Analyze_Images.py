@@ -86,7 +86,7 @@ def analyze_image(data_uri):
         st.error(f"Error from OpenAI: {response.text}")
         return None
 
-st.title("Image Analyzer (and more!)")
+st.title("🔍 Image Analyzer (and more!)")
 
 if check_password():
 
