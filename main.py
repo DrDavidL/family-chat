@@ -127,7 +127,7 @@ def check_password():
 
 
 
-st.title("Family Chat")
+st.title("💬 Family Chat")
 
 
 
