@@ -23,7 +23,7 @@ def embedchain_bot(db_path, api_key):
                 "config": {
                     "model": "gpt-3.5-turbo",
                     "temperature": 0.5,
-                    "max_tokens": 1000,
+                    "max_tokens": 4000,
                     "top_p": 1,
                     "stream": True,
                     "api_key": api_key,
@@ -87,7 +87,7 @@ if check_password2():
                     st.markdown("")
                     add_pdf_files.append(file_name)
                     os.remove(temp_file_name)
-                st.session_state.messages.append({"role": "assistant", "content": f"Added {file_name} to knowledge base!"})
+                st.session_state.messages_pdf.append({"role": "assistant", "content": f"Added {file_name} to knowledge base!"})
             except Exception as e:
                 st.error(f"Error adding {file_name} to knowledge base: {e}")
                 st.stop()
@@ -97,20 +97,28 @@ if check_password2():
     # styled_caption = '<p style="font-size: 17px; color: #aaa;">🚀 An <a href="https://github.com/embedchain/embedchain">Embedchain</a> app powered by OpenAI!</p>'  # noqa: E501
     # st.markdown(styled_caption, unsafe_allow_html=True)
 
-    if "messages" not in st.session_state:
-        st.session_state.messages = [
+    if "messages_pdf" not in st.session_state:
+        st.session_state.messages_pdf = [
+            # {
+            #     "role": "system",
+            #     "content": """You answer questions about PDF documents. You provide two sections in your response.\n
+            #     ## Response Using PDF Content\n
+            #     ...
+            #     ## Response Commentary from a domain specific AI expert\n """,
+            # },
             {
                 "role": "assistant",
                 "content": """
-                    Hi! I'm chatbot powered by Embedchain, which can answer questions about your pdf documents.\n
+                    Hi! I'm chatbot that answers questions about your pdf documents.\n
                     Upload your pdf documents here and I'll answer your questions about them! 
                 """,
             }
         ]
 
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    for message in st.session_state.messages_pdf:
+        if message["role"] != "system":
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
 
     if prompt := st.chat_input("Ask me anything!"):
         if not st.session_state.api_key:
@@ -120,7 +128,7 @@ if check_password2():
         app = get_ec_app(st.session_state.api_key)
 
         with st.chat_message("user"):
-            st.session_state.messages.append({"role": "user", "content": prompt})
+            st.session_state.messages_pdf.append({"role": "user", "content": prompt})
             st.markdown(prompt)
 
         with st.chat_message("assistant"):
@@ -164,4 +172,22 @@ if check_password2():
 
             msg_placeholder.markdown(full_response)
             # print("Answer: ", full_response)
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
+            st.session_state.messages_pdf.append({"role": "assistant", "content": full_response})
+    
+    # app = App()
+    data_sources = app.get_data_sources()
+
+    st.sidebar.write("Files in database: ", len(data_sources))
+    for i in range(len(data_sources)):
+        full_path = data_sources[i]["data_value"]
+        # Extract just the filename from the full path
+        temp_filename = os.path.basename(full_path)
+        # Use regex to only keep up to the first .pdf in the filename
+        cleaned_filename = re.sub(r'^(.+?\.pdf).*$', r'\1', temp_filename)
+        st.sidebar.write(i, ": ", cleaned_filename)
+
+
+            
+    if st.sidebar.button("Clear database (click twice to confirm)"):
+        app = App()
+        app.reset()
