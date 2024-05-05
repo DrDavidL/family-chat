@@ -51,11 +51,13 @@ pip install -r requirements.txt
 
 Also, be sure to copy the secrets.example file into a secrets.toml file (within the .streamlit directory) that is **NOT** tracked by git. This file should contain your API keys and a password so only shared users can access it. (Individual accounts when I have time...).
 
-4. Start the Streamlit application:
+4. Start the Streamlit application for use on your local computer:
 
 ```bash
 streamlit run main.py
 ```
+
+5. Finally, create a personal account with Streamlit.io and link your Github account to post your app to the cloud. You can then share the app link with your family for personal use. Update passwords and API keys in the settings on the Streamlit server.
 
 ## Usage
 
@@ -65,6 +67,7 @@ Follow the on-screen instructions for each feature within the Streamlit applicat
 - **PDF Chat Feature**: Upload PDF documents through the provided interface. You can then ask the chatbot questions related to the content of the uploaded documents.
 - **Image Generation**: Enter a textual prompt describing the image you wish to generate, and the application will use AI to create an image based on your description.
 - **Image Analysis**: Upload an image to have it analyzed by our AI tool. The application will provide information or an interpretation of the image's content.
+- **Post to Streamlit Cloud**: Share your running app with your family.
 
 ## For Contributors
 
@@ -83,6 +86,7 @@ From there, you can create a new branch for your changes, commit those changes, 
 - Chatbot feature powered by [OpenRouter API](https://openrouter.ai).
 - Image generation built with technologies from [OpenAI](https://openai.com).
 - Image analysis utilizes advanced computer vision models, also from OpenAI.
+- Streamlit hosting at [Streamlit.io](https://streamlit.io).
 
 ## References
 
