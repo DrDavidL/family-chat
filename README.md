@@ -57,6 +57,15 @@ Also, be sure to copy the secrets.example file into a secrets.toml file (within 
 streamlit run main.py
 ```
 
+## Usage
+
+Follow the on-screen instructions for each feature within the Streamlit application. Here's a brief overview:
+
+- **Chatbot with Memory**: Engage with the chatbot through the chat interface. The chatbot will remember context from your conversation for a seamless experience.
+- **PDF Chat Feature**: Upload PDF documents through the provided interface. You can then ask the chatbot questions related to the content of the uploaded documents.
+- **Image Generation**: Enter a textual prompt describing the image you wish to generate, and the application will use AI to create an image based on your description.
+- **Image Analysis**: Upload an image to have it analyzed by our AI tool. The application will provide information or an interpretation of the image's content.
+
 ## For Contributors
 
 If you're considering contributing to the project, please start by forking the repository. This will create your own copy of the project under your account, where you can make changes without affecting the original codebase.
@@ -68,16 +77,6 @@ git clone https://your-forked-repository-url.git
 ```
 
 From there, you can create a new branch for your changes, commit those changes, and push them back to your forked repository. When you're ready, submit a pull request to propose integrating your changes into the original project.
-
-
-## Usage
-
-Follow the on-screen instructions for each feature within the Streamlit application. Here's a brief overview:
-
-- **Chatbot with Memory**: Engage with the chatbot through the chat interface. The chatbot will remember context from your conversation for a seamless experience.
-- **PDF Chat Feature**: Upload PDF documents through the provided interface. You can then ask the chatbot questions related to the content of the uploaded documents.
-- **Image Generation**: Enter a textual prompt describing the image you wish to generate, and the application will use AI to create an image based on your description.
-- **Image Analysis**: Upload an image to have it analyzed by our AI tool. The application will provide information or an interpretation of the image's content.
 
 ## Acknowledgments
 
