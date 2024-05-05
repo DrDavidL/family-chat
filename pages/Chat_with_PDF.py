@@ -5,7 +5,6 @@ import tempfile
 import threading
 
 import streamlit as st
-from main import check_password as check_password2
 
 from embedchain import App
 from embedchain.config import BaseLlmConfig
@@ -15,6 +14,35 @@ __import__('pysqlite3')
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
+def check_password():
+    """Returns `True` if the user had the correct password."""
+
+    def password_entered():
+        """Checks whether a password entered by the user is correct."""
+        if st.session_state["password"] == st.secrets["password"]:
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # don't store password
+        else:
+            st.session_state["password_correct"] = False
+
+    if "password_correct" not in st.session_state:
+        # First run, show input for password.
+        # random_number = random.randint(1000000000, 9999999999)
+        st.text_input(
+            "Password", type="password", on_change=password_entered, key='password'
+        )
+        st.write("*Please contact David Liebovitz, MD if you need an updated password for access.*")
+        return False
+    elif not st.session_state["password_correct"]:
+        # Password not correct, show input + error.
+        st.text_input(
+            "Password", type="password", on_change=password_entered, key="password"
+        )
+        st.error("😕 Password incorrect")
+        return False
+    else:
+        # Password correct.
+        return True
 def embedchain_bot(db_path, api_key):
     return App.from_config(
         config={
@@ -55,7 +83,7 @@ def get_ec_app(api_key):
         st.session_state.app = app
     return app
 
-if check_password2():
+if check_password():
 
     with st.sidebar:
         # openai_access_token = st.text_input("OpenAI API Key", key="api_key", type="password")

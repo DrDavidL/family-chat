@@ -108,9 +108,9 @@ def check_password():
 
     if "password_correct" not in st.session_state:
         # First run, show input for password.
-        random_number = random.randint(1000000000, 9999999999)
+        # random_number = random.randint(1000000000, 9999999999)
         st.text_input(
-            "Password", type="password", on_change=password_entered, key=f'{random_number}password'
+            "Password", type="password", on_change=password_entered, key='password'
         )
         st.write("*Please contact David Liebovitz, MD if you need an updated password for access.*")
         return False
