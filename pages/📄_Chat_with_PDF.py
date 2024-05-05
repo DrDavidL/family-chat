@@ -82,7 +82,7 @@ def get_ec_app(api_key):
         app = embedchain_bot(db_path, api_key)
         st.session_state.app = app
     return app
-
+st.title("📄 Chat with PDFs!")
 if check_password():
 
     with st.sidebar:
@@ -122,7 +122,7 @@ if check_password():
                 st.stop()
         st.session_state["add_pdf_files"] = add_pdf_files
 
-    st.title("📄 Chat with PDFs!")
+    
     # styled_caption = '<p style="font-size: 17px; color: #aaa;">🚀 An <a href="https://github.com/embedchain/embedchain">Embedchain</a> app powered by OpenAI!</p>'  # noqa: E501
     # st.markdown(styled_caption, unsafe_allow_html=True)
 
