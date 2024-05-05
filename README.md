@@ -49,15 +49,17 @@ cd path-to-your-project
 pip install -r requirements.txt
 ```
 
-Also, be sure to copy the secrets.example file into a secrets.toml file (within the .streamlit directory) that is **NOT** tracked by git. This file should contain your API keys and a password so only shared users can access it. (Individual accounts when I have time...).
+4. Obtain API keys and update your secrets file.
 
-4. Start the Streamlit application for use on your local computer:
+Be sure to copy the secrets.example file into a secrets.toml file (within the .streamlit directory) that is **NOT** tracked by git. This file should contain your API keys and a password so only shared users can access it. (Individual user accounts are coming if/when I have time...). You'll need to set the API keys from OpenAI and OpenRouter in your secrets.toml file. Obtain keys at openai.com and openrouter.ai. A small limited credit on these API services goes a long way!
+
+5. Start the Streamlit application for use on your local computer:
 
 ```bash
 streamlit run main.py
 ```
 
-5. Finally, create a personal account with Streamlit.io and link your Github account to post your app to the cloud. You can then share the app link with your family for personal use. Update passwords and API keys in the settings on the Streamlit server.
+6. Finally, create a personal account with Streamlit.io and link your Github account to post your app to the cloud. You can then share the app link with your family for personal use. Update passwords and API keys in the settings on the Streamlit server.
 
 ## Usage
 
