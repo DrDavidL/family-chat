@@ -4,6 +4,11 @@ import markdown2
 from openai import OpenAI
 import requests
 import json
+import random
+
+import random
+
+# Generate a random 10-digit number
 
 
 st.set_page_config(page_title='Family Chat', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'expanded')
@@ -103,8 +108,9 @@ def check_password():
 
     if "password_correct" not in st.session_state:
         # First run, show input for password.
+        random_number = random.randint(1000000000, 9999999999)
         st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
+            "Password", type="password", on_change=password_entered, key=f'{random_number}password'
         )
         st.write("*Please contact David Liebovitz, MD if you need an updated password for access.*")
         return False
