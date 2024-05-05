@@ -148,8 +148,8 @@ if check_password():
         st.session_state.model = st.selectbox("Model Options", ("anthropic/claude-3-haiku",
         "anthropic/claude-3-sonnet", "anthropic/claude-3-opus", "openai/gpt-3.5-turbo", "openai/gpt-4-turbo", 
         "google/gemini-pro", "google/gemini-pro-1.5","meta-llama/llama-3-70b-instruct:nitro", ), index=0)
-        st.info("Choose personality, edit as needed, and click update prompt below.")    
-        pick_prompt = st.radio("Pick a prompt", ("Revise and improve an essay", "Regular user", "Expert Answers", ), index=1)
+        st.info("Choose personality, edit as needed, and click update personality below.")    
+        pick_prompt = st.radio("Pick a personality", ("Revise and improve an essay", "Regular user", "Expert Answers", ), index=1)
         if pick_prompt == "Revise and improve an essay":
             system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_essayist, height=300)
         elif pick_prompt == "Regular user":
@@ -160,7 +160,7 @@ if check_password():
             system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_regular, height=300)
         
         
-        if st.button("Update system prompt"):
+        if st.button("Update Personality"):
             st.session_state.messages += [{"role": "system", "content": f'Ignore prior guidance and use this system prompt: {system}'}]
             
             
