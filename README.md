@@ -9,13 +9,13 @@ This application leverates cutting-edge AI technologies to offer a comprehensive
 
 Utilizes the OpenRouter API (for a variety of models) to provide an intelligent chatbot experience that can remember context from previous interactions, making conversations more coherent and engaging.
 
-![Chatbot with Memory](path/to/chatbot_memory_screenshot.png)
+![Chatbot with Memory](chat_with_memory.png)
 
 ### PDF Chat Feature Using Embedchain
 
 Leverages the Embedchain library to facilitate document-based chats. Users can upload PDF documents, and the chatbot can reference content within these documents to provide relevant responses.
 
-![PDF Chat Feature](path/to/pdf_chat_feature_screenshot.png)
+![PDF Chat Feature](chat_with_pdfs.png)
 
 ### Image Generation with OpenAI
 
@@ -68,7 +68,7 @@ git clone https://your-forked-repository-url.git
 ```
 
 From there, you can create a new branch for your changes, commit those changes, and push them back to your forked repository. When you're ready, submit a pull request to propose integrating your changes into the original project.
-```
+
 
 ## Usage
 
@@ -93,4 +93,4 @@ We make use of the Embedchain framework in this project:
 
 <a href="https://www.buymeacoffee.com/dlteach" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
-[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/dlteach)
+![Buy Me a Coffee](bmc_qr.png)
