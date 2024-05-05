@@ -265,7 +265,7 @@ if check_password():
         html = markdown2.markdown(conversation_str, extras=["tables"])
         st.download_button('Download the conversation when done!', html, f'response.html', 'text/html')
     
-    if st.sidebar.checkbox("Clear chat history"):
+    if st.sidebar.button("Clear chat history (click twice to confirm)"):
         st.session_state["messages"] = [{"role": "system", "content": system}]
         st.sidebar.info("Chat history cleared and ready to start new conversation!")
         
