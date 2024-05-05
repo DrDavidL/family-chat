@@ -77,22 +77,31 @@ def enforce_length_constraint_with_summarization(model, messages, max_length=700
 
 
 def llm_call(model, messages):
-    response = requests.post(
-        url="https://openrouter.ai/api/v1/chat/completions",
-        headers={
-            "Authorization": "Bearer " + st.secrets["OPENROUTER_API_KEY"],  # Fixed to correct access to secrets
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app",  # To identify your app
-            "X-Title": "lof-sims",
-        },
-        data=json.dumps({
-            "model": model,
-            "messages": messages,
-        })
-    )
-    # Extract the response content
-    response_data = response.json()
-    return response_data # Adjusted to match expected JSON structure
+    api_key = st.secrets["OPENROUTER_API_KEY"]
+    client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=api_key,
+        )
+    completion = client.chat.completions.create(
+        model = model,
+        messages = messages,
+        # headers={ "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
+        #     "X-Title": "GPT and Med Ed"},
+        temperature = 0.5,
+        max_tokens = 1000,
+        stream = True,   
+        )
+    
+
+    placeholder = st.empty()
+    full_response = ''
+    for chunk in completion:
+        if chunk.choices[0].delta.content is not None:
+            full_response += chunk.choices[0].delta.content
+            # full_response.append(chunk.choices[0].delta.content)
+            placeholder.markdown(full_response)
+    placeholder.markdown(full_response)
+    return full_response
 
 
 def check_password():
@@ -213,22 +222,40 @@ if check_password():
             st.markdown(prompt)
             
             # Display assistant response in chat message container
-        with st.spinner("Thinking..."):
-            try:
-                response = llm_call(st.session_state.model, st.session_state.messages)
-            except Exception as e:
-                st.error(f"Error (Call Dad or re-start the app): {e}")
-                st.stop()
-        response = response['choices'][0]['message']['content']
-        st.session_state.messages.append({"role": "assistant", "content": response})
-        st.session_state.full_conversation.append({"role": "assistant", "content": response})
-        with st.chat_message("assistant", avatar="🤓"):        
-            st.session_state.response = st.write(response)
+        # with st.spinner("Thinking..."):
+        #     try:
+        #         stream = llm_call(st.session_state.model, st.session_state.messages)
+        #     except Exception as e:
+        #         st.error(f"Error (Call Dad or re-start the app): {e}")
+        #         st.stop()
+
+        with st.chat_message("assistant", avatar="🤓"): 
+            api_key = st.secrets["OPENROUTER_API_KEY"]
+            client = OpenAI(
+                    base_url="https://openrouter.ai/api/v1",
+                    api_key=api_key,
+                )
+            completion = client.chat.completions.create(
+                model = st.session_state.model,
+                messages = st.session_state.messages,
+                # headers={ "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
+                #     "X-Title": "GPT and Med Ed"},
+                temperature = 0.5,
+                max_tokens = 1000,
+                stream = True,   
+                )     
+            
+            # placeholder = st.empty()
+            response =st.write_stream(completion)
+            st.session_state.messages.append({"role": "assistant", "content": response})
+            st.session_state.full_conversation.append({"role": "assistant", "content": response})
+            st.session_state.response = response
     
                 
     
 
-    if st.session_state["full_conversation"]:
+    # if st.session_state["full_conversation"]:
+    if st.session_state.response:
         conversation_str = ""
         for message in st.session_state.full_conversation:
             if message["role"] == "user":
