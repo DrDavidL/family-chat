@@ -68,6 +68,7 @@ if check_password2():
             app = get_ec_app(st.session_state.api_key)
 
         pdf_files = st.file_uploader("Upload your PDF files", accept_multiple_files=True, type="pdf")
+        st.write("File Upload history only ⬆️. Section below shows current files in the knowledge base⬇️.")
         add_pdf_files = st.session_state.get("add_pdf_files", [])
         for pdf_file in pdf_files:
             file_name = pdf_file.name
