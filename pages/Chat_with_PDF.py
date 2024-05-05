@@ -11,7 +11,9 @@ from embedchain import App
 from embedchain.config import BaseLlmConfig
 from embedchain.helpers.callbacks import (StreamingStdOutCallbackHandlerYield,
                                           generate)
-
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 def embedchain_bot(db_path, api_key):
     return App.from_config(
