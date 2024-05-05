@@ -1,5 +1,5 @@
 
-# Project Title: API Powered AI Chatbot
+# API Powered AI Chatbot App for Shared Personal use
 
 This application leverates cutting-edge AI technologies to offer a comprehensive suite of features, including a conversational chatbot with memory capabilities, a PDF chat feature for document-based interactions, image generation powered by OpenAI, and an advanced image analysis tool. 
 
