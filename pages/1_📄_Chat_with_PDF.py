@@ -220,9 +220,10 @@ if check_password():
     if st.sidebar.button("Clear database (click twice to confirm)"):
         app = App()
         app.reset()
-        
-    if st.sidebar.button("Clear chat history."):
-        st.session_state["messages_pdf"] = []
+    
+    if st.session_state.messages_pdf:    
+        if st.sidebar.button("Clear chat history."):
+            st.session_state["messages_pdf"] = []
 
 # @misc{embedchain,
 #   author = {Taranjeet Singh, Deshraj Yadav},
