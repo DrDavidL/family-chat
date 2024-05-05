@@ -220,3 +220,15 @@ if check_password():
     if st.sidebar.button("Clear database (click twice to confirm)"):
         app = App()
         app.reset()
+        
+    if st.sidebar.button("Clear chat history."):
+        st.session_state["messages_pdf"] = []
+
+# @misc{embedchain,
+#   author = {Taranjeet Singh, Deshraj Yadav},
+#   title = {Embedchain: The Open Source RAG Framework},
+#   year = {2023},
+#   publisher = {GitHub},
+#   journal = {GitHub repository},
+#   howpublished = {\url{https://github.com/embedchain/embedchain}},
+# }
