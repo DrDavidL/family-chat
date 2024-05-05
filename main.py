@@ -6,8 +6,6 @@ import requests
 import json
 import random
 
-import random
-
 # Generate a random 10-digit number
 
 

@@ -3,3 +3,4 @@ embedchain
 langchain-text-splitters
 pysqlite3-binary
 openai
+Pillow

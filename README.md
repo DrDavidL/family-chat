@@ -21,22 +21,20 @@ Leverages the Embedchain library to facilitate document-based chats. Users can u
 
 Integrates with OpenAI's API to generate images based on textual prompts provided by users. This feature harnesses the power of models like DALL-E to transform creative ideas into visual art.
 
-![Image Generation](path/to/image_generation_screenshot.png)
 
 ### Image Analysis Tool
 
 Employs advanced image recognition techniques to analyze uploaded images, giving insights or descriptions about the content of the image which can be particularly useful for educational or accessibility purposes.
 
-![Image Analysis Tool](path/to/image_analysis_tool_screenshot.png)
 
-## Getting Started
+## Getting Started - For General Use
 
 To run this application locally, you'll need to have Python and Pip installed on your system. Follow the steps below to set up the environment and start the application:
 
 1. Clone the repository to your local machine:
 
 ```bash
-git clone https://your-repository-url.git
+git clone https://github.com/drdavidl/family-chat/blob/main/main.py
 ```
 
 2. Navigate to the project directory:
@@ -51,10 +49,25 @@ cd path-to-your-project
 pip install -r requirements.txt
 ```
 
+Also, be sure to copy the secrets.example file into a secrets.toml file (within the .streamlit directory) that is **NOT** tracked by git. This file should contain your API keys and a password so only shared users can access it. (Individual accounts when I have time...).
+
 4. Start the Streamlit application:
 
 ```bash
-streamlit run app.py
+streamlit run main.py
+```
+
+## For Contributors
+
+If you're considering contributing to the project, please start by forking the repository. This will create your own copy of the project under your account, where you can make changes without affecting the original codebase.
+
+After forking, you can clone your forked repository to your local environment using:
+
+```bash
+git clone https://your-forked-repository-url.git
+```
+
+From there, you can create a new branch for your changes, commit those changes, and push them back to your forked repository. When you're ready, submit a pull request to propose integrating your changes into the original project.
 ```
 
 ## Usage
@@ -69,25 +82,15 @@ Follow the on-screen instructions for each feature within the Streamlit applicat
 ## Acknowledgments
 
 - Chatbot feature powered by [OpenRouter API](https://openrouter.ai).
-- PDF chat functionality provided by [Embedchain](https://github.com/embedchain/embedchain). 
-  ```bibtex
-  @misc{embedchain,
-    author = {Taranjeet Singh, Deshraj Yadav},
-    title = {Embedchain: The Open Source RAG Framework},
-    year = {2023},
-    publisher = {GitHub},
-    journal = {GitHub repository},
-    howpublished = {\url{https://github.com/embedchain/embedchain}},
-  }
-  ```
 - Image generation built with technologies from [OpenAI](https://openai.com).
-- Image analysis utilizes advanced computer vision models.
-
-Please replace the `"path/to/..."` placeholders with the actual paths to your screenshots, and adjust the repository URL and other specifics according to your project's details.
-
+- Image analysis utilizes advanced computer vision models, also from OpenAI.
 
 ## References
 
 We make use of the Embedchain framework in this project:
 
 - Taranjeet Singh, Deshraj Yadav. Embedchain: The Open Source RAG Framework. 2023, GitHub. Available at: [https://github.com/embedchain/embedchain](https://github.com/embedchain/embedchain).
+
+<a href="https://www.buymeacoffee.com/dlteach" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+
+[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/dlteach)
