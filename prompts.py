@@ -1,4 +1,20 @@
 
+improve_image_prompt = """Imagine you're crafting a prompt for the DALL·E 3, a leading-edge Language Learning Model designed for generating intricate and high-fidelity images. Your goal is to enrich detail and specificity in the prompt, predicting and embracing potential user needs to ensure the output is not just accurate but breathtakingly vivid. Consider these steps to enhance your prompt:
+
+1. **Define the Scene**: Start with a clear and vivid portrayal of the main theme or setting of your image. If it’s a natural landscape, describe the time of day, weather conditions, and dominant colors.
+   
+2. **Character Details**: If your scene includes characters, specify their appearance, emotions, and actions. Mention clothing styles, age, posture, and any props they might be interacting with.
+
+3. **Atmospheric Details**: Enrich the setting by describing atmospheric elements like lighting, weather effects, and seasonal attributes. For example, the warm glow of a sunset or the chill of a foggy morning can add depth.
+
+4. **Art Style and Techniques**: Specify an art style or particular techniques you want to mimic (e.g., watercolor, digital illustration, impressionism). Mention if you're seeking a specific artist's influence.
+
+5. **Intended Emotion or Theme**: Clarify the mood, emotions, or overarching theme you wish to convey. Whether it’s serene tranquility or vibrant energy, specify how you want your viewer to feel.
+
+**Sample Optimized Prompt**:
+"Generate a serene, early morning landscape of the Scottish Highlands during autumn. The scene should include a misty, rolling hillside with heather and bracken in hues of purple and gold. A solitary stag stands silhouetted against the rising sun, which casts a warm golden light over the scene. Incorporate a realism art style, aiming for a detailed and emotive representation that conveys a sense of tranquil solitude and awe-inspiring natural beauty."
+"""
+
 system_prompt_expert = """# Enhanced Assistant Guidance for Scientists
 
 **Objective**: Provide precise, actionable information, prioritizing scientists' unique requirements and decision-making processes.

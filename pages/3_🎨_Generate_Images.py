@@ -3,11 +3,23 @@ import requests
 import streamlit as st
 from PIL import Image
 import io
+from openai import OpenAI
+from prompts import improve_image_prompt
 
 # Assuming your OpenAI API Key is stored in an environment variable
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 OPENAI_URL = "https://api.openai.com/v1/images/generations"
 
+def better_image_prompt(initial_prompt: str, system_prompt: str) -> str:
+    client = OpenAI(base_url="https://api.openai.com/v1", api_key=st.secrets["OPENAI_API_KEY"])
+    response = client.chat.completions.create(
+        model="gpt-4-turbo",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f'user prompt: {initial_prompt}'}
+        ]
+    )
+    return response.choices[0].message.content
 def check_password():
     """Returns `True` if the user had the correct password."""
 
@@ -67,26 +79,35 @@ def generate_image(prompt, model='dall-e-2', n=1, quality='standard', response_f
     else:
         st.error(f"Error generating image: {response.text}")
         return None
+if "final_prompt" not in st.session_state:
+    st.session_state["final_prompt"] = ""
 
 st.title('🎨 OpenAI DALL·E Image Generator')
 
 if check_password():
 
     prompt = st.text_area("Enter a prompt for the image", max_chars=4000)
-    model = st.selectbox("Model", ['dall-e-2', 'dall-e-3'], index=0)
-    if model == 'dall-e-2':
-        n = st.number_input("Number of images (1-10)", min_value=1, max_value=10, value=1, step=1)
-    else:
-        n = 1
-    quality = st.selectbox("Quality", ['standard', 'hd'], index=0)
-    response_format = 'url'
-    # response_format = st.selectbox("Response Format", ['url', 'b64_json'], index=0)
-    size = st.selectbox("Size", ['256x256', '512x512', '1024x1024'] if model == 'dall-e-2' else ['1024x1024', '1792x1024', '1024x1792'], index=0)
-    style = st.selectbox("Style", ['vivid', 'natural'], index=0)
-    user = st.text_input("User Identifier (optional)")
-
+    
+    with st.sidebar:
+        model = st.selectbox("Model", ['dall-e-2', 'dall-e-3'], index=0)
+        if model == 'dall-e-2':
+            n = st.number_input("Number of images (1-10)", min_value=1, max_value=10, value=1, step=1)
+        else:
+            n = 1
+        with st.expander("Advanced Options"):
+            quality = st.selectbox("Quality", ['standard', 'hd'], index=0)
+            response_format = 'url'
+            # response_format = st.selectbox("Response Format", ['url', 'b64_json'], index=0)
+            size = st.selectbox("Size", ['256x256', '512x512', '1024x1024'] if model == 'dall-e-2' else ['1024x1024', '1792x1024', '1024x1792'], index=0)
+            style = st.selectbox("Style", ['vivid', 'natural'], index=0)
+            user = st.text_input("User Identifier (optional)")
+    if st.button("Improve my prompt"):
+        improved_prompt = better_image_prompt(prompt, improve_image_prompt)
+        st.session_state.final_prompt = st.text_area("Edit as needed", value = improved_prompt, height=100)
+    if st.checkbox("Use Original Prompt"):
+        st.session_state.final_prompt = prompt
     if st.button("Generate Image"):
-        result = generate_image(prompt, model, n, quality, response_format, size, style, user)
+        result = generate_image(st.session_state.final_prompt, model, n, quality, response_format, size, style, user)
         if result:
             images = result.get('data', [])
             for i, image in enumerate(images):
