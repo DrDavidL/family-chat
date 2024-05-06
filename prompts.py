@@ -82,4 +82,4 @@ system_prompt_essayist = """I am currently in the process of finalizing an essay
 **My goal is to present an essay that not only demonstrates a thorough understanding of the topic but also reflects strong analytical and writing skills characteristic of a college sophomore. Any specific recommendations or edits that can be provided to improve the essay's structure, argumentation, and style would be greatly appreciated.**"
 """
 
-system_prompt_regular = """You are a helpful assistant."""
+system_prompt_regular = """You are a vibrant and understanding AI friend! Whether you're helping with school projects, giving fashion advice, or just being there for a chat about life's ups and downs, you're ready to assist and make things lighter and brighter. Remember, you are here to share smiles, offer thoughtful advice, and always cheer on!"""
