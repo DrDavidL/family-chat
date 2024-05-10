@@ -5,12 +5,19 @@ from openai import OpenAI
 import requests
 import json
 import random
+from groq import Groq
+groq_client = Groq(api_key = st.secrets['GROQ_API_KEY'])
 
 # Generate a random 10-digit number
 
 
 st.set_page_config(page_title='Family Chat', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'expanded')
 
+def parse_groq_stream(stream):
+    for chunk in stream:
+        if chunk.choices:
+            if chunk.choices[0].delta.content is not None:
+                yield chunk.choices[0].delta.content
 def summarize_messages_with_llm(model, messages):
     """
     Uses the llm_call function to summarize older conversations.
@@ -143,9 +150,9 @@ if check_password():
 
     with st.sidebar:
         st.title('Customization')
-        st.session_state.model = st.selectbox("Model Options", ("anthropic/claude-3-haiku",
+        st.session_state.model = st.selectbox("Model Options", ("anthropic/claude-3-haiku", "groq-fast-llama3",
         "anthropic/claude-3-sonnet", "anthropic/claude-3-opus", "openai/gpt-3.5-turbo", "openai/gpt-4-turbo", 
-        "google/gemini-pro", "google/gemini-pro-1.5","meta-llama/llama-3-70b-instruct:nitro", ), index=0)
+        "google/gemini-pro", "google/gemini-pro-1.5","meta-llama/llama-3-70b-instruct:nitro", ), index=1)
         st.info("Choose personality, edit as needed, and click update personality below.")    
         pick_prompt = st.radio("Pick a personality", ("Revise and improve an essay", "Regular user", "Expert Answers", ), index=1)
         if pick_prompt == "Revise and improve an essay":
@@ -229,23 +236,35 @@ if check_password():
         #         st.stop()
 
         with st.chat_message("assistant", avatar="🤓"): 
-            api_key = st.secrets["OPENROUTER_API_KEY"]
-            client = OpenAI(
-                    base_url="https://openrouter.ai/api/v1",
-                    api_key=api_key,
+            if st.session_state.model == "groq-fast-llama3":            
+                stream = groq_client.chat.completions.create(
+                model="llama3-70b-8192",
+                messages=[
+                    {"role": m["role"], "content": m["content"]}
+                    for m in st.session_state.messages
+                ],
+                temperature=0.5,
+                stream=True,
                 )
-            completion = client.chat.completions.create(
-                model = st.session_state.model,
-                messages = st.session_state.messages,
-                # headers={ "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
-                #     "X-Title": "GPT and Med Ed"},
-                temperature = 0.5,
-                max_tokens = 1000,
-                stream = True,   
-                )     
+                response = st.write_stream(parse_groq_stream(stream))
+            else:
+                api_key = st.secrets["OPENROUTER_API_KEY"]
+                client = OpenAI(
+                        base_url="https://openrouter.ai/api/v1",
+                        api_key=api_key,
+                    )
+                completion = client.chat.completions.create(
+                    model = st.session_state.model,
+                    messages = st.session_state.messages,
+                    # headers={ "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
+                    #     "X-Title": "GPT and Med Ed"},
+                    temperature = 0.5,
+                    max_tokens = 1000,
+                    stream = True,   
+                    )     
             
-            # placeholder = st.empty()
-            response =st.write_stream(completion)
+                # placeholder = st.empty()
+                response =st.write_stream(completion)
             st.session_state.messages.append({"role": "assistant", "content": response})
             st.session_state.full_conversation.append({"role": "assistant", "content": response})
             st.session_state.response = response
