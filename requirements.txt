@@ -120,7 +120,7 @@ pyproject-hooks==1.1.0 ; python_full_version > "3.10.0" and python_version < "3.
 pyreadline3==3.4.1 ; sys_platform == "win32" and python_full_version > "3.10.0" and python_version < "3.12"
 pysbd==0.3.4 ; python_full_version > "3.10.0" and python_version < "3.12"
 pysqlite3-binary 
-pysqlite3==0.5.2 ; python_full_version > "3.10.0" and python_version < "3.12"
+# pysqlite3==0.5.2 ; python_full_version > "3.10.0" and python_version < "3.12"
 python-dateutil==2.9.0.post0 ; python_full_version > "3.10.0" and python_version < "3.12"
 python-dotenv==1.0.1 ; python_full_version > "3.10.0" and python_version < "3.12"
 python-multipart==0.0.9 ; python_full_version > "3.10.0" and python_version < "3.12"
