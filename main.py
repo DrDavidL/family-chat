@@ -7,6 +7,9 @@ import json
 import random
 from groq import Groq
 groq_client = Groq(api_key = st.secrets['GROQ_API_KEY'])
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 # Generate a random 10-digit number
 
