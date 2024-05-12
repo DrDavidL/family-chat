@@ -16,6 +16,7 @@ langchain-text-splitters = "^0.0.1"
 requests = "^2.31.0"
 pillow = "^10.3.0"
 groq = "^0.5.0"
+pandas = "^2.2.2"
 
 
 [build-system]

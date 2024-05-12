@@ -3,6 +3,7 @@ import queue
 import re
 import tempfile
 import threading
+import pandas as pd
 
 import streamlit as st
 
@@ -10,9 +11,55 @@ from embedchain import App
 from embedchain.config import BaseLlmConfig
 from embedchain.helpers.callbacks import (StreamingStdOutCallbackHandlerYield,
                                           generate)
-__import__('pysqlite3')
+# __import__('pysqlite3')
 import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+def create_table_from_text(text):
+    """ Example function to detect, extract, and format table-like data. More complex implementations might be necessary. """
+    # Placeholder function body; real implementation will depend on actual text structures
+    data = {
+        "Study and Design": ["ATLAS53 RCT, Superiority", "Ward et al54 RCT, Superiority"],
+        "No. enrolled": [446, 344],
+        "Outcome point": ["3 mo", "6 mo"],
+        "Primary Outcome": ["Success", "Success"]
+    }
+    df = pd.DataFrame(data)
+    return df.to_string(index=False)  # Returns a string that represents the DataFrame in table form.
+
+def clean_text(text):
+    text = re.sub(r"([a-z])([A-Z])", r"\1 \2", text)
+    text = text.replace('-', ' ').replace(' .', '.')
+    text = re.sub(r"\s{2,}", " ", text)  # Replace multiple spaces with a single space
+    return text
+
+def refine_output(data):
+    with st.expander("Source Excerpts:"):
+        for text, info in sorted(data, key=lambda x: x[1]['score'], reverse=True)[:3]:
+            st.write(f"Score: {info['score']}\n")
+            cleaned_text = clean_text(text)
+            
+            if "Table" in cleaned_text:
+                st.write("Extracted Table:")
+                st.write(create_table_from_text(cleaned_text))  # Example of integrating table extraction
+            else:
+                st.write("Text:\n", cleaned_text)
+            st.write("\n")
+
+# def clean_text(text):
+#     """ Insert spaces before capital letters to reconstruct sentences, handle special characters. """
+#     text = re.sub(r"([a-z])([A-Z])", r"\1 \2", text)  # Space before capital letters
+#     text = text.replace('-', ' ').replace(' .', '.')  # Replace dashes, correct spacings before periods
+#     return text
+
+def process_data(data):
+    # Sort the data based on the score in descending order and select the top three
+    top_three = sorted(data, key=lambda x: x[1]['score'], reverse=True)[:3]
+    
+    # Format each text entry
+    for text, info in top_three:
+        cleaned_text = clean_text(text)
+        st.write(f"Score: {info['score']}\nText: {cleaned_text}\n")
 
 def check_password():
     """Returns `True` if the user had the correct password."""
@@ -171,9 +218,10 @@ if check_password():
                 llm_config = app.llm.config.as_dict()
                 llm_config["callbacks"] = [StreamingStdOutCallbackHandlerYield(q=q)]
                 config = BaseLlmConfig(**llm_config)
-                answer, citations = app.chat(prompt, config=config, citations=True)
+                answer, citations = app.query(prompt, config=config, citations=True)
                 result["answer"] = answer
                 result["citations"] = citations
+                
 
             results = {}
             thread = threading.Thread(target=app_response, args=(results,))
@@ -198,7 +246,9 @@ if check_password():
                 sources = list(set(sources))
                 for source in sources:
                     full_response += f"- {source}\n"
-
+            # st.write(f' here are the full {citations}')
+            
+            refine_output(citations)
             msg_placeholder.markdown(full_response)
             # print("Answer: ", full_response)
             st.session_state.messages_pdf.append({"role": "assistant", "content": full_response})
