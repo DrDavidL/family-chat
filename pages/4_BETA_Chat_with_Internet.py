@@ -18,8 +18,8 @@ from embedchain.helpers.callbacks import (StreamingStdOutCallbackHandlerYield,
 
 i_app = I_app()
 
-if st.session_state.messages_pdf is not None:
-    i_app.reset()
+# if st.session_state.messages_pdf is not None:
+#     i_app.reset()
 
 def create_table_from_text(text):
     """ Example function to detect, extract, and format table-like data. More complex implementations might be necessary. """
@@ -90,7 +90,7 @@ def embedchain_bot(db_path, api_key):
             },
             "vectordb": {
                 "provider": "chroma",
-                "config": {"collection_name": "chat-pdf", "dir": db_path, "allow_reset": True},
+                "config": {"collection_name": "chat-web", "dir": db_path, "allow_reset": True},
             },
             "embedder": {"provider": "openai", "config": {"api_key": api_key}},
             "chunker": {"chunk_size": 2000, "chunk_overlap": 0, "length_function": "len"},
@@ -274,10 +274,10 @@ if check_password():
                 sources = []
                 for i, citation in enumerate(citations):
                     source = citation[1]["url"]
-                    pattern = re.compile(r"([^/]+)\.[^\.]+\.pdf$")
+                    pattern = re.compile(r"([^/]+)\.[^\.]+\.html$")
                     match = pattern.search(source)
                     if match:
-                        source = match.group(1) + ".pdf"
+                        source = match.group(1) + ".html"
                     sources.append(source)
                 sources = list(set(sources))
                 for source in sources:
@@ -299,7 +299,7 @@ if check_password():
             # Extract just the filename from the full path
             temp_filename = os.path.basename(full_path)
             # Use regex to only keep up to the first .pdf in the filename
-            cleaned_filename = re.sub(r'^(.+?\.pdf).*$', r'\1', temp_filename)
+            cleaned_filename = re.sub(r'^(.+?\.html).*$', r'\1', temp_filename)
             st.write(i, ": ", cleaned_filename)
 
 
