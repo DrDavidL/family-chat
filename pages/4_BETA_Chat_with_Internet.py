@@ -1,8 +1,8 @@
 import streamlit as st
 import requests
 # from loguru import logger
-import trafilatura
-from trafilatura import bare_extraction
+# import trafilatura
+# from trafilatura import bare_extraction
 import os
 import queue
 import re
@@ -173,6 +173,7 @@ def extract_url_content(url):
     return {"url":url, "content":content}
 
 st.title("📄 Chat with Internet!")
+st.warning("Before using - clear the database on left sidebar! I'm working to make sure it starts empty! ")
 
 st.warning("Not fully working yet! Try at your peril! :)")
 if "messages_web" not in st.session_state:
