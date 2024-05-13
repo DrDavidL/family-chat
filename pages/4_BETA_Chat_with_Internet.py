@@ -1,6 +1,6 @@
 import streamlit as st
 import requests
-from loguru import logger
+# from loguru import logger
 import trafilatura
 from trafilatura import bare_extraction
 import os
@@ -165,7 +165,7 @@ def realtime_search(query, domains, max):
     return snippets, urls
 
 def extract_url_content(url):
-    logger.info(url)
+    # logger.info(url)
     downloaded = trafilatura.fetch_url(url)
     content =  trafilatura.extract(downloaded)
 

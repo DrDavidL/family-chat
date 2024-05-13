@@ -130,6 +130,7 @@ def get_ec_app(api_key):
         st.session_state.app = app
     return app
 st.title("📄 Chat with PDFs!")
+st.warning("Before using - clear the database on left sidebar! I'm working to make sure it starts empty! ")
 
 if check_password():
 
