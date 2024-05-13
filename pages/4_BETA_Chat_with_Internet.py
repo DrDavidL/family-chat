@@ -18,6 +18,9 @@ from embedchain.helpers.callbacks import (StreamingStdOutCallbackHandlerYield,
 
 i_app = I_app()
 
+if st.session_state.messages_web:
+    i_app.reset()
+
 def create_table_from_text(text):
     """ Example function to detect, extract, and format table-like data. More complex implementations might be necessary. """
     # Placeholder function body; real implementation will depend on actual text structures
@@ -175,7 +178,7 @@ def realtime_search(query, domains, max):
 #     return {"url":url, "content":content}
 
 st.title("📄 Chat with Internet!")
-st.warning("Before using - clear the database on left sidebar! I'm working to make sure it starts empty! ")
+# st.warning("Before using - clear the database on left sidebar! I'm working to make sure it starts empty! ")
 
 st.warning("Not fully working yet! Try at your peril! :)")
 if "messages_web" not in st.session_state:
