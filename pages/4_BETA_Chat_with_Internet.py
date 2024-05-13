@@ -1,3 +1,8 @@
+import streamlit as st
+import requests
+from loguru import logger
+import trafilatura
+from trafilatura import bare_extraction
 import os
 import queue
 import re
@@ -5,26 +10,24 @@ import tempfile
 import threading
 import pandas as pd
 
-import streamlit as st
 
-from embedchain import App
+from embedchain import App as I_app
 from embedchain.config import BaseLlmConfig
 from embedchain.helpers.callbacks import (StreamingStdOutCallbackHandlerYield,
                                           generate)
-# __import__('pysqlite3')
-import sys
-# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+i_app = I_app()
 
 def create_table_from_text(text):
     """ Example function to detect, extract, and format table-like data. More complex implementations might be necessary. """
     # Placeholder function body; real implementation will depend on actual text structures
-    data = {
-        "Study and Design": ["ATLAS53 RCT, Superiority", "Ward et al54 RCT, Superiority"],
-        "No. enrolled": [446, 344],
-        "Outcome point": ["3 mo", "6 mo"],
-        "Primary Outcome": ["Success", "Success"]
-    }
-    df = pd.DataFrame(data)
+    # data = {
+    #     "Study and Design": ["ATLAS53 RCT, Superiority", "Ward et al54 RCT, Superiority"],
+    #     "No. enrolled": [446, 344],
+    #     "Outcome point": ["3 mo", "6 mo"],
+    #     "Primary Outcome": ["Success", "Success"]
+    # }
+    df = pd.DataFrame(text)
     return df.to_string(index=False)  # Returns a string that represents the DataFrame in table form.
 
 def clean_text(text):
@@ -38,11 +41,7 @@ def refine_output(data):
         for text, info in sorted(data, key=lambda x: x[1]['score'], reverse=True)[:3]:
             st.write(f"Score: {info['score']}\n")
             cleaned_text = clean_text(text)
-            
-            # if "Table" in cleaned_text:
-            #     st.write("Extracted Table:")
-            #     st.write(create_table_from_text(cleaned_text))  # Example of integrating table extraction
-            # else:
+
             st.write("Text:\n", cleaned_text)
             st.write("\n")
 
@@ -61,6 +60,44 @@ def process_data(data):
         cleaned_text = clean_text(text)
         st.write(f"Score: {info['score']}\nText: {cleaned_text}\n")
 
+def get_ec_app(api_key):
+    if "i_app" in st.session_state:
+        print("Found app in session state")
+        i_app = st.session_state.i_app
+    else:
+        print("Creating app")
+        db_path = get_db_path()
+        i_app = embedchain_bot(db_path, api_key)
+        st.session_state.i_app = i_app
+    return i_app
+
+def embedchain_bot(db_path, api_key):
+    return I_app.from_config(
+        config={
+            "llm": {
+                "provider": "openai",
+                "config": {
+                    "model": "gpt-3.5-turbo",
+                    "temperature": 0.5,
+                    "max_tokens": 4000,
+                    "top_p": 1,
+                    "stream": True,
+                    "api_key": api_key,
+                },
+            },
+            "vectordb": {
+                "provider": "chroma",
+                "config": {"collection_name": "chat-pdf", "dir": db_path, "allow_reset": True},
+            },
+            "embedder": {"provider": "openai", "config": {"api_key": api_key}},
+            "chunker": {"chunk_size": 2000, "chunk_overlap": 0, "length_function": "len"},
+        }
+    )
+
+
+def get_db_path():
+    tmpdirname = tempfile.mkdtemp()
+    return tmpdirname
 def check_password():
     """Returns `True` if the user had the correct password."""
 
@@ -90,109 +127,97 @@ def check_password():
     else:
         # Password correct.
         return True
-def embedchain_bot(db_path, api_key):
-    return App.from_config(
-        config={
-            "llm": {
-                "provider": "openai",
-                "config": {
-                    "model": "gpt-3.5-turbo",
-                    "temperature": 0.5,
-                    "max_tokens": 4000,
-                    "top_p": 1,
-                    "stream": True,
-                    "api_key": api_key,
-                },
-            },
-            "vectordb": {
-                "provider": "chroma",
-                "config": {"collection_name": "chat-pdf", "dir": db_path, "allow_reset": True},
-            },
-            "embedder": {"provider": "openai", "config": {"api_key": api_key}},
-            "chunker": {"chunk_size": 2000, "chunk_overlap": 0, "length_function": "len"},
+@st.cache_data
+def realtime_search(query, domains, max):
+    url = "https://real-time-web-search.p.rapidapi.com/search"
+    
+    # Combine domains and query
+    full_query = f"{domains} {query}"
+    querystring = {"q": full_query, "limit": max}
+
+    headers = {
+        "X-RapidAPI-Key": st.secrets["X-RapidAPI-Key"],
+        "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com",
+    }
+
+    urls = []
+    snippets = []
+
+    try:
+        response = requests.get(url, headers=headers, params=querystring)
+        
+        # Check if the request was successful
+        if response.status_code == 200:
+            response_data = response.json()
+            # st.write(response_data.get('data', []))
+            for item in response_data.get('data', []):
+                urls.append(item.get('url'))   
+                snippets.append(f"**{item.get('title')}**  \n*{item.get('snippet')}*  \n{item.get('url')} <END OF SITE>")
+
+        else:
+            st.error(f"Search failed with status code: {response.status_code}")
+            return [], []
+
+    except requests.exceptions.RequestException as e:
+        st.error(f"RapidAPI real-time search failed to respond: {e}")
+        return [], []
+
+    return snippets, urls
+
+def extract_url_content(url):
+    logger.info(url)
+    downloaded = trafilatura.fetch_url(url)
+    content =  trafilatura.extract(downloaded)
+
+    # logger.info(url +"______"+  content)
+    return {"url":url, "content":content}
+
+st.title("📄 Chat with Internet!")
+
+st.warning("Not fully working yet! Try at your peril! :)")
+if "messages_web" not in st.session_state:
+    st.session_state.messages_web = [
+        # {
+        #     "role": "system",
+        #     "content": """You answer questions about PDF documents. You provide two sections in your response.\n
+        #     ## Response Using PDF Content\n
+        #     ...
+        #     ## Response Commentary from a domain specific AI expert\n """,
+        # },
+        {
+            "role": "assistant",
+            "content": """
+                Hi! I'm chatbot that answers questions about your pdf documents.\n
+                Upload your pdf documents here and I'll answer your questions about them! 
+            """,
         }
-    )
-
-
-def get_db_path():
-    tmpdirname = tempfile.mkdtemp()
-    return tmpdirname
-
-
-def get_ec_app(api_key):
-    if "app" in st.session_state:
-        print("Found app in session state")
-        app = st.session_state.app
-    else:
-        print("Creating app")
-        db_path = get_db_path()
-        app = embedchain_bot(db_path, api_key)
-        st.session_state.app = app
-    return app
-st.title("📄 Chat with PDFs!")
+    ]
 
 if check_password():
-
-    with st.sidebar:
-        # openai_access_token = st.text_input("OpenAI API Key", key="api_key", type="password")
-        # "WE DO NOT STORE YOUR OPENAI KEY."
-        # "Just paste your OpenAI API key here and we'll use it to power the chatbot. [Get your OpenAI API key](https://platform.openai.com/api-keys)"  # noqa: E501
-        openai_access_token = st.secrets["OPENAI_API_KEY"]
-        st.session_state.api_key = openai_access_token
-
-        if st.session_state.api_key:
-            app = get_ec_app(st.session_state.api_key)
-
-        pdf_files = st.file_uploader("Upload your PDF files", accept_multiple_files=True, type="pdf")
-        st.write("File Upload history only ⬆️. Section below shows current files in the knowledge base⬇️.")
-        add_pdf_files = st.session_state.get("add_pdf_files", [])
-        for pdf_file in pdf_files:
-            file_name = pdf_file.name
-            if file_name in add_pdf_files:
-                continue
+    openai_access_token = st.secrets["OPENAI_API_KEY"]
+    st.session_state.api_key = openai_access_token
+    all_site_text = []
+    if "search_results" not in st.session_state:
+        st.session_state["search_results"] = []
+    site_number = st.number_input("Number of sites", min_value=1, max_value=10, value=5, step=1)    
+    initial_search = st.text_input("Enter search query")
+    if st.button("Search"):
+        initial_response, urls = realtime_search(initial_search, "all", site_number)
+        with st.expander("Source URLs:"):
+            st.write(urls)
+        for site in urls:
             try:
-                if not st.session_state.api_key:
-                    st.error("Please enter your OpenAI API Key")
-                    st.stop()
-                temp_file_name = None
-                with tempfile.NamedTemporaryFile(mode="wb", delete=False, prefix=file_name, suffix=".pdf") as f:
-                    f.write(pdf_file.getvalue())
-                    temp_file_name = f.name
-                if temp_file_name:
-                    st.markdown(f"Adding {file_name} to knowledge base...")
-                    app.add(temp_file_name, data_type="pdf_file")
-                    st.markdown("")
-                    add_pdf_files.append(file_name)
-                    os.remove(temp_file_name)
-                st.session_state.messages_pdf.append({"role": "assistant", "content": f"Added {file_name} to knowledge base!"})
+                i_app.add(site, data_type='web_page')
+                
             except Exception as e:
-                st.error(f"Error adding {file_name} to knowledge base: {e}")
-                st.stop()
-        st.session_state["add_pdf_files"] = add_pdf_files
-
-    
-    # styled_caption = '<p style="font-size: 17px; color: #aaa;">🚀 An <a href="https://github.com/embedchain/embedchain">Embedchain</a> app powered by OpenAI!</p>'  # noqa: E501
-    # st.markdown(styled_caption, unsafe_allow_html=True)
-
-    if "messages_pdf" not in st.session_state:
-        st.session_state.messages_pdf = [
-            # {
-            #     "role": "system",
-            #     "content": """You answer questions about PDF documents. You provide two sections in your response.\n
-            #     ## Response Using PDF Content\n
-            #     ...
-            #     ## Response Commentary from a domain specific AI expert\n """,
-            # },
-            {
-                "role": "assistant",
-                "content": """
-                    Hi! I'm chatbot that answers questions about your pdf documents.\n
-                    Upload your pdf documents here and I'll answer your questions about them! 
-                """,
-            }
-        ]
-
-    for message in st.session_state.messages_pdf:
+                st.error(f"Error adding {site}: {e}, skipping that one!")
+            # st.write(f'here is a site: {site}')
+        #     site_text = extract_url_content(site)
+        #     all_site_text.append(site_text)
+        # with st.expander("All Site Text:"):
+        #     st.write(all_site_text)
+        
+    for message in st.session_state.messages_web:
         if message["role"] != "system":
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
@@ -202,10 +227,10 @@ if check_password():
             st.error("Please enter your OpenAI API Key", icon="🤖")
             st.stop()
 
-        app = get_ec_app(st.session_state.api_key)
+        i_app = get_ec_app(st.session_state.api_key)
 
         with st.chat_message("user"):
-            st.session_state.messages_pdf.append({"role": "user", "content": prompt})
+            st.session_state.messages_web.append({"role": "user", "content": prompt})
             st.markdown(prompt)
 
         with st.chat_message("assistant"):
@@ -216,10 +241,10 @@ if check_password():
             q = queue.Queue()
 
             def app_response(result):
-                llm_config = app.llm.config.as_dict()
+                llm_config = i_app.llm.config.as_dict()
                 llm_config["callbacks"] = [StreamingStdOutCallbackHandlerYield(q=q)]
                 config = BaseLlmConfig(**llm_config)
-                answer, citations = app.query(prompt, config=config, citations=True)
+                answer, citations = i_app.query(prompt, config=config, citations=True)
                 result["answer"] = answer
                 result["citations"] = citations
                 
@@ -247,15 +272,15 @@ if check_password():
                 sources = list(set(sources))
                 for source in sources:
                     full_response += f"- {source}\n"
-            # st.write(f' here are the full {citations}')
+            st.write(f' here are the full {citations}')
             
             refine_output(citations)
             msg_placeholder.markdown(full_response)
             # print("Answer: ", full_response)
-            st.session_state.messages_pdf.append({"role": "assistant", "content": full_response})
+            st.session_state.messages_web.append({"role": "assistant", "content": full_response})
     
     # app = App()
-    data_sources = app.get_data_sources()
+    data_sources = i_app.get_data_sources()
 
     st.sidebar.write("Files in database: ", len(data_sources))
     for i in range(len(data_sources)):
@@ -269,18 +294,10 @@ if check_password():
 
             
     if st.sidebar.button("Clear database (click twice to confirm)"):
-        app = App()
-        app.reset()
+        i_app = I_app()
+        i_app.reset()
     
-    if st.session_state.messages_pdf:    
+    if st.session_state.messages_web:    
         if st.sidebar.button("Clear chat history."):
-            st.session_state["messages_pdf"] = []
-
-# @misc{embedchain,
-#   author = {Taranjeet Singh, Deshraj Yadav},
-#   title = {Embedchain: The Open Source RAG Framework},
-#   year = {2023},
-#   publisher = {GitHub},
-#   journal = {GitHub repository},
-#   howpublished = {\url{https://github.com/embedchain/embedchain}},
-# }
+            st.session_state["messages_web"] = []
+        
