@@ -61,7 +61,7 @@ def process_data(data):
         cleaned_text = clean_text(text)
         st.write(f"Score: {info['score']}\nText: {cleaned_text}\n")
 
-if st.session_state.messages_web:
+if st.session_state.messages_web is not None:
     app = App()
     app.reset()
 def check_password():

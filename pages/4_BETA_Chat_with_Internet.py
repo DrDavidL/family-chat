@@ -18,7 +18,7 @@ from embedchain.helpers.callbacks import (StreamingStdOutCallbackHandlerYield,
 
 i_app = I_app()
 
-if st.session_state.messages_web:
+if st.session_state.messages_pdf is not None:
     i_app.reset()
 
 def create_table_from_text(text):
