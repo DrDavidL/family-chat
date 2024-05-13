@@ -105,6 +105,8 @@ def check_password():
         """Checks whether a password entered by the user is correct."""
         if st.session_state["password"] == st.secrets["password"]:
             st.session_state["password_correct"] = True
+            app = I_app()
+            app.reset()
             del st.session_state["password"]  # don't store password
         else:
             st.session_state["password_correct"] = False
@@ -164,13 +166,13 @@ def realtime_search(query, domains, max):
 
     return snippets, urls
 
-def extract_url_content(url):
-    # logger.info(url)
-    downloaded = trafilatura.fetch_url(url)
-    content =  trafilatura.extract(downloaded)
+# def extract_url_content(url):
+#     # logger.info(url)
+#     downloaded = trafilatura.fetch_url(url)
+#     content =  trafilatura.extract(downloaded)
 
-    # logger.info(url +"______"+  content)
-    return {"url":url, "content":content}
+#     # logger.info(url +"______"+  content)
+#     return {"url":url, "content":content}
 
 st.title("📄 Chat with Internet!")
 st.warning("Before using - clear the database on left sidebar! I'm working to make sure it starts empty! ")
@@ -188,8 +190,7 @@ if "messages_web" not in st.session_state:
         {
             "role": "assistant",
             "content": """
-                Hi! I'm chatbot that answers questions about your pdf documents.\n
-                Upload your pdf documents here and I'll answer your questions about them! 
+                Hi! I'm a chatbot that answers questions about your web pages.\n
             """,
         }
     ]
@@ -198,20 +199,22 @@ if check_password():
     openai_access_token = st.secrets["OPENAI_API_KEY"]
     st.session_state.api_key = openai_access_token
     all_site_text = []
-    if "search_results" not in st.session_state:
-        st.session_state["search_results"] = []
-    site_number = st.number_input("Number of sites", min_value=1, max_value=10, value=5, step=1)    
-    initial_search = st.text_input("Enter search query")
+    if "snippets" not in st.session_state:
+        st.session_state["snippets"] = []
+    if "urls" not in st.session_state:
+        st.session_state["urls"] = []
+    site_number = st.number_input("Number of sites", min_value=1, max_value=15, value=10, step=1)    
+    initial_search = st.text_input("Search the internet for a topic; links appear in expander on the left. Ask questions about those sites!", max_chars=4000)
     if st.button("Search"):
-        initial_response, urls = realtime_search(initial_search, "all", site_number)
-        with st.expander("Source URLs:"):
-            st.write(urls)
-        for site in urls:
+        st.session_state.snippets, st.session_state.urls = realtime_search(initial_search, "all", site_number)
+        for site in st.session_state.urls:
             try:
                 i_app.add(site, data_type='web_page')
+                # st.session_state.search_results += f"{site}\n"
                 
             except Exception as e:
-                st.error(f"Error adding {site}: {e}, skipping that one!")
+                # st.error(f"Error adding {site}: {e}, skipping that one!")
+                st.sidebar.error(f"This site, {site}, won't let us retrieve content. Skipping it.")
             # st.write(f'here is a site: {site}')
         #     site_text = extract_url_content(site)
         #     all_site_text.append(site_text)
@@ -223,7 +226,7 @@ if check_password():
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
 
-    if prompt := st.chat_input("Ask me anything!"):
+    if prompt := st.chat_input("Ask me about content from the websites!"):
         if not st.session_state.api_key:
             st.error("Please enter your OpenAI API Key", icon="🤖")
             st.stop()
@@ -260,6 +263,9 @@ if check_password():
 
             thread.join()
             answer, citations = results["answer"], results["citations"]
+            # st.write(f' here is the answer: {answer}')
+            # st.write(f' here are the full citations: {citations}')
+
             if citations:
                 full_response += "\n\n**Sources**:\n"
                 sources = []
@@ -273,7 +279,7 @@ if check_password():
                 sources = list(set(sources))
                 for source in sources:
                     full_response += f"- {source}\n"
-            st.write(f' here are the full {citations}')
+                
             
             refine_output(citations)
             msg_placeholder.markdown(full_response)
@@ -284,13 +290,14 @@ if check_password():
     data_sources = i_app.get_data_sources()
 
     st.sidebar.write("Files in database: ", len(data_sources))
-    for i in range(len(data_sources)):
-        full_path = data_sources[i]["data_value"]
-        # Extract just the filename from the full path
-        temp_filename = os.path.basename(full_path)
-        # Use regex to only keep up to the first .pdf in the filename
-        cleaned_filename = re.sub(r'^(.+?\.pdf).*$', r'\1', temp_filename)
-        st.sidebar.write(i, ": ", cleaned_filename)
+    with st.sidebar.expander("Files in database:"):
+        for i in range(len(data_sources)):
+            full_path = data_sources[i]["data_value"]
+            # Extract just the filename from the full path
+            temp_filename = os.path.basename(full_path)
+            # Use regex to only keep up to the first .pdf in the filename
+            cleaned_filename = re.sub(r'^(.+?\.pdf).*$', r'\1', temp_filename)
+            st.write(i, ": ", cleaned_filename)
 
 
             
@@ -301,4 +308,13 @@ if check_password():
     if st.session_state.messages_web:    
         if st.sidebar.button("Clear chat history."):
             st.session_state["messages_web"] = []
+            
+    if st.session_state.snippets:    
+        with st.sidebar.expander("Sites Identified:"):
+            for site in st.session_state.snippets:
+                st.write(site + "\n")
+            # st.write(st.session_state.snippets)
+            
+
+        
         

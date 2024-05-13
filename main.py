@@ -7,9 +7,10 @@ import json
 import random
 from groq import Groq
 groq_client = Groq(api_key = st.secrets['GROQ_API_KEY'])
-__import__('pysqlite3')
+# __import__('pysqlite3')
 import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+from embedchain import App
 
 # Generate a random 10-digit number
 
@@ -119,6 +120,8 @@ def check_password():
         """Checks whether a password entered by the user is correct."""
         if st.session_state["password"] == st.secrets["password"]:
             st.session_state["password_correct"] = True
+            app = App()
+            app.reset()
             del st.session_state["password"]  # don't store password
         else:
             st.session_state["password_correct"] = False

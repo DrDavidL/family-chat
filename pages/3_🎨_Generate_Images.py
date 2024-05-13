@@ -5,6 +5,7 @@ from PIL import Image
 import io
 from openai import OpenAI
 from prompts import improve_image_prompt
+from embedchain import App
 
 # Assuming your OpenAI API Key is stored in an environment variable
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
@@ -27,6 +28,8 @@ def check_password():
         """Checks whether a password entered by the user is correct."""
         if st.session_state["password"] == st.secrets["password"]:
             st.session_state["password_correct"] = True
+            app = App()
+            app.reset()
             del st.session_state["password"]  # don't store password
         else:
             st.session_state["password_correct"] = False
