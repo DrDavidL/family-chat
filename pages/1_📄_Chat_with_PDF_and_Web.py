@@ -4,6 +4,7 @@ import re
 import tempfile
 import threading
 import pandas as pd
+import requests
 
 import streamlit as st
 
@@ -15,6 +16,42 @@ from embedchain.helpers.callbacks import (StreamingStdOutCallbackHandlerYield,
 import sys
 # sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
+@st.cache_data
+def realtime_search(query, domains, max):
+    url = "https://real-time-web-search.p.rapidapi.com/search"
+    
+    # Combine domains and query
+    full_query = f"{domains} {query}"
+    querystring = {"q": full_query, "limit": max}
+
+    headers = {
+        "X-RapidAPI-Key": st.secrets["X-RapidAPI-Key"],
+        "X-RapidAPI-Host": "real-time-web-search.p.rapidapi.com",
+    }
+
+    urls = []
+    snippets = []
+
+    try:
+        response = requests.get(url, headers=headers, params=querystring)
+        
+        # Check if the request was successful
+        if response.status_code == 200:
+            response_data = response.json()
+            # st.write(response_data.get('data', []))
+            for item in response_data.get('data', []):
+                urls.append(item.get('url'))   
+                snippets.append(f"**{item.get('title')}**  \n*{item.get('snippet')}*  \n{item.get('url')} <END OF SITE>")
+
+        else:
+            st.error(f"Search failed with status code: {response.status_code}")
+            return [], []
+
+    except requests.exceptions.RequestException as e:
+        st.error(f"RapidAPI real-time search failed to respond: {e}")
+        return [], []
+
+    return snippets, urls
 def create_table_from_text(text):
     """ Example function to detect, extract, and format table-like data. More complex implementations might be necessary. """
     # Placeholder function body; real implementation will depend on actual text structures
@@ -120,7 +157,8 @@ def embedchain_bot(db_path, api_key):
 
 
 def get_db_path():
-    tmpdirname = tempfile.mkdtemp()
+    # tmpdirname = tempfile.mkdtemp()
+    tmpdirname = tempfile.mkdtemp(prefix= "pdf_")
     return tmpdirname
 
 
@@ -134,12 +172,17 @@ def get_ec_app(api_key):
         app = embedchain_bot(db_path, api_key)
         st.session_state.app = app
     return app
-st.title("📄 Chat with PDFs!")
+st.title("📄 Chat with PDFs or Web Sites!")
 # st.warning("Before using - clear the database on left sidebar! I'm working to make sure it starts empty! ")
 
 if check_password():
+    
+    if "data_type" not in st.session_state:
+        st.session_state.data_type = "pdf"
 
+    # PDF Additions
     with st.sidebar:
+        st.header("Give your AI Knowledge! Upload PDF Files or Search the Web")
         # openai_access_token = st.text_input("OpenAI API Key", key="api_key", type="password")
         # "WE DO NOT STORE YOUR OPENAI KEY."
         # "Just paste your OpenAI API key here and we'll use it to power the chatbot. [Get your OpenAI API key](https://platform.openai.com/api-keys)"  # noqa: E501
@@ -148,9 +191,10 @@ if check_password():
 
         if st.session_state.api_key:
             app = get_ec_app(st.session_state.api_key)
+            
 
         pdf_files = st.file_uploader("Upload your PDF files", accept_multiple_files=True, type="pdf")
-        st.write("File Upload history only ⬆️. Section below shows current files in the knowledge base⬇️.")
+        # st.write("File Upload history only ⬆️. Section below shows current files in the knowledge base⬇️.")
         add_pdf_files = st.session_state.get("add_pdf_files", [])
         for pdf_file in pdf_files:
             file_name = pdf_file.name
@@ -175,8 +219,49 @@ if check_password():
                 st.error(f"Error adding {file_name} to knowledge base: {e}")
                 st.stop()
         st.session_state["add_pdf_files"] = add_pdf_files
+        
+        
+        # web additions!
+        openai_access_token = st.secrets["OPENAI_API_KEY"]
+        st.session_state.api_key = openai_access_token
+        all_site_text = []
+        if "snippets" not in st.session_state:
+            st.session_state["snippets"] = []
+        if "urls" not in st.session_state:
+            st.session_state["urls"] = []
+        st.divider()
+        st.subheader("Search the Web!")    
+        initial_search = st.text_input("Enter search terms to send pages to your AI!", max_chars=4000)
+        site_number = st.number_input("Number of web pages to retrieve:", min_value=1, max_value=15, value=6, step=1)
+        restrict_domains = st.checkbox("Restrict search to reliable medical domains", value=False)
+        medical_domains = """site:www.nih.gov OR site:www.ncbi.nlm.nih.gov/books OR site:www.cdc.gov OR site:www.who.int OR site:www.pubmed.gov OR site:www.cochranelibrary.com OR 
+site:www.uptodate.com OR site:www.medscape.com OR site:www.ama-assn.org OR site:www.nejm.org OR 
+site:www.bmj.com OR site:www.thelancet.com OR site:www.jamanetwork.com OR site:www.mayoclinic.org OR site:www.acpjournals.org OR 
+site:www.cell.com OR site:www.nature.com OR site:www.springer.com OR site:www.wiley.com OR site:www.ahrq.gov OR site:www.edu"""
+        if restrict_domains:
+            domains = medical_domains
+        else:
+            domains = ""
+            
+        if st.button("Search"):
+            st.session_state.snippets, st.session_state.urls = realtime_search(initial_search, domains, site_number)
+            for site in st.session_state.urls:
+                try:
+                    app.add(site, data_type='web_page')
+                    # st.session_state.search_results += f"{site}\n"
+                    
+                except Exception as e:
+                    # st.error(f"Error adding {site}: {e}, skipping that one!")
+                    st.sidebar.error(f"This site, {site}, won't let us retrieve content. Skipping it.")
 
-    
+    with st.sidebar:
+        with st.expander("View Search Result Snippets"):
+            if st.session_state.snippets:
+                for snippet in st.session_state.snippets:
+                    snippet = snippet.replace('<END OF SITE>', '')
+                    st.markdown(snippet)
+            else:
+                st.markdown("No search results found!")
     # styled_caption = '<p style="font-size: 17px; color: #aaa;">🚀 An <a href="https://github.com/embedchain/embedchain">Embedchain</a> app powered by OpenAI!</p>'  # noqa: E501
     # st.markdown(styled_caption, unsafe_allow_html=True)
 
@@ -263,14 +348,18 @@ if check_password():
     # app = App()
     data_sources = app.get_data_sources()
 
-    st.sidebar.write("Files in database: ", len(data_sources))
-    for i in range(len(data_sources)):
-        full_path = data_sources[i]["data_value"]
-        # Extract just the filename from the full path
-        temp_filename = os.path.basename(full_path)
-        # Use regex to only keep up to the first .pdf in the filename
-        cleaned_filename = re.sub(r'^(.+?\.pdf).*$', r'\1', temp_filename)
-        st.sidebar.write(i, ": ", cleaned_filename)
+    # st.sidebar.write("Files in database: ", len(data_sources))
+    with st.sidebar:
+        st.divider()
+        st.subheader("Files in database:")
+        with st.expander(f'See {len(data_sources)} files in database.'):
+            for i in range(len(data_sources)):
+                full_path = data_sources[i]["data_value"]
+                # Extract just the filename from the full path
+                temp_filename = os.path.basename(full_path)
+                # Use regex to only keep up to the first .pdf in the filename
+                cleaned_filename = re.sub(r'^(.+?\.pdf).*$', r'\1', temp_filename)
+                st.write(i, ": ", cleaned_filename)
 
 
             
