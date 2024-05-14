@@ -277,8 +277,8 @@ site:www.cell.com OR site:www.nature.com OR site:www.springer.com OR site:www.wi
             {
                 "role": "assistant",
                 "content": """
-                    Hi! I'm chatbot that answers questions about your pdf documents.\n
-                    Upload your pdf documents here and I'll answer your questions about them and also provide my own commentary. 
+                    Hi! I'm an AI chatbot running the latest OpenAI GPT-4o model. I can answer questions about your pdfs or web search results.\n
+                    Please upload your pdfs, or search the web and I'll answer questions about the content. 
                 """,
             }
         ]
