@@ -278,7 +278,7 @@ site:www.cell.com OR site:www.nature.com OR site:www.springer.com OR site:www.wi
                 "role": "assistant",
                 "content": """
                     Hi! I'm an AI chatbot running the latest OpenAI GPT-4o model. I can answer questions about your pdfs or web search results.\n
-                    Please upload your pdfs, or search the web and I'll answer questions about the content. 
+                    Please upload your ⬅️ pdfs, or search the ⬅️ web and I'll answer questions about the content. 
                 """,
             }
         ]
