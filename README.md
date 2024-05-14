@@ -7,15 +7,15 @@ This application leverates cutting-edge AI technologies to offer a comprehensive
 
 ### Chatbot with Memory Using OpenRouter
 
-Utilizes the OpenRouter API (for a variety of models) to provide an intelligent chatbot experience that can remember context from previous interactions, making conversations more coherent and engaging.
+Utilizes the OpenRouter API (for a variety of models) to provide an intelligent chatbot experience, making conversations more coherent and engaging.
 
 ![Chatbot with Memory](chat_with_memory.png)
 
 ### PDF Chat Feature Using Embedchain
 
-Leverages the Embedchain library to facilitate document-based chats. Users can upload PDF documents, and the chatbot can reference content within these documents to provide relevant responses.
+Leverages the Embedchain library to facilitate document-based or Internet site based chats. Users can upload PDF documents and/or perform web searchs and the chatbot can reference content within these documents and/or sites to provide relevant responses. And, citations include precise text used to answer the user's query!
 
-![PDF Chat Feature](chat_with_pdfs.png)
+![PDF and Web Chat Feature](chat_with_pdfs.png)
 
 ### Image Generation with OpenAI
 
