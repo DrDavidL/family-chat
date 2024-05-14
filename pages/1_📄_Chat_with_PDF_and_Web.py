@@ -292,7 +292,7 @@ site:www.cell.com OR site:www.nature.com OR site:www.springer.com OR site:www.wi
         tweaked_prompt = prompt + "\n\n" + """"Provide two sections in your response.\n
                 ## Response Exclusively Using Provided Context:\n
                 ...
-                ## AI Commentary (expanding response above from a pithy domain expert perspective);\n """
+                ## AI Commentary (from a domain expert perspective);\n """
         if not st.session_state.api_key:
             st.error("Please enter your OpenAI API Key", icon="🤖")
             st.stop()
