@@ -157,7 +157,7 @@ if check_password():
     with st.sidebar:
         st.title('Customization')
         st.session_state.model = st.selectbox("Model Options", ("anthropic/claude-3-haiku", "groq-fast-llama3",
-        "anthropic/claude-3-sonnet", "anthropic/claude-3-opus", "openai/gpt-3.5-turbo", "openai/gpt-4-turbo", 
+        "anthropic/claude-3-sonnet", "anthropic/claude-3-opus", "gpt-4o", "openai/gpt-3.5-turbo", "openai/gpt-4-turbo", 
         "google/gemini-pro", "google/gemini-pro-1.5","meta-llama/llama-3-70b-instruct:nitro", ), index=1)
         st.info("Choose personality, edit as needed, and click update personality below.")    
         pick_prompt = st.radio("Pick a personality", ("Revise and improve an essay", "Regular user", "Expert Answers", ), index=1)
@@ -253,6 +253,25 @@ if check_password():
                 stream=True,
                 )
                 response = st.write_stream(parse_groq_stream(stream))
+            elif st.session_state.model == "gpt-4o":
+                api_key = st.secrets["OPENAI_API_KEY"]
+                client = OpenAI(
+                        base_url="https://api.openai.com/v1",
+                        api_key=api_key,
+                )
+                completion = client.chat.completions.create(
+                    model = st.session_state.model,
+                    messages = st.session_state.messages,
+                    # headers={ "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
+                    #     "X-Title": "GPT and Med Ed"},
+                    temperature = 0.5,
+                    max_tokens = 1000,
+                    stream = True,   
+                    )     
+            
+                # placeholder = st.empty()
+                response =st.write_stream(completion)
+                
             else:
                 api_key = st.secrets["OPENROUTER_API_KEY"]
                 client = OpenAI(

@@ -138,7 +138,7 @@ def embedchain_bot(db_path, api_key):
             "llm": {
                 "provider": "openai",
                 "config": {
-                    "model": "gpt-3.5-turbo",
+                    "model": "gpt-4o",
                     "temperature": 0.5,
                     "max_tokens": 4000,
                     "top_p": 1,
@@ -269,16 +269,16 @@ site:www.cell.com OR site:www.nature.com OR site:www.springer.com OR site:www.wi
         st.session_state.messages_pdf = [
             # {
             #     "role": "system",
-            #     "content": """You answer questions about PDF documents. You provide two sections in your response.\n
-            #     ## Response Using PDF Content\n
+            #     "content": """You receive context from PDF docs or websites. You provide two sections in your response.\n
+            #     ## Response Using Provided Context:\n
             #     ...
-            #     ## Response Commentary from a domain specific AI expert\n """,
+            #     ## AI Commentary from a domain expert perspective;\n """,
             # },
             {
                 "role": "assistant",
                 "content": """
                     Hi! I'm chatbot that answers questions about your pdf documents.\n
-                    Upload your pdf documents here and I'll answer your questions about them! 
+                    Upload your pdf documents here and I'll answer your questions about them and also provide my own commentary. 
                 """,
             }
         ]
@@ -289,6 +289,10 @@ site:www.cell.com OR site:www.nature.com OR site:www.springer.com OR site:www.wi
                 st.markdown(message["content"])
 
     if prompt := st.chat_input("Ask me anything!"):
+        tweaked_prompt = prompt + "\n\n" + """"Provide two sections in your response.\n
+                ## Response Exclusively Using Provided Context:\n
+                ...
+                ## AI Commentary (from a domain expert perspective);\n """
         if not st.session_state.api_key:
             st.error("Please enter your OpenAI API Key", icon="🤖")
             st.stop()
@@ -310,7 +314,7 @@ site:www.cell.com OR site:www.nature.com OR site:www.springer.com OR site:www.wi
                 llm_config = app.llm.config.as_dict()
                 llm_config["callbacks"] = [StreamingStdOutCallbackHandlerYield(q=q)]
                 config = BaseLlmConfig(**llm_config)
-                answer, citations = app.query(prompt, config=config, citations=True)
+                answer, citations = app.query(tweaked_prompt, config=config, citations=True)
                 result["answer"] = answer
                 result["citations"] = citations
                 
