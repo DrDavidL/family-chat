@@ -151,13 +151,13 @@ if check_password():
         st.info("Choose personality, edit as needed, and click update personality below.")    
         pick_prompt = st.radio("Pick a personality", ("Revise and improve an essay", "Regular user", "Expert Answers", ), index=1)
         if pick_prompt == "Revise and improve an essay":
-            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_essayist, height=300)
+            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_essayist, height=100)
         elif pick_prompt == "Regular user":
-            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_regular, height=300)
+            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_regular, height=100)
         elif pick_prompt == "Expert Answers":
-            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_expert, height=300)
+            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_expert, height=100)
         elif pick_prompt == "Other":
-            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_regular, height=300)
+            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_regular, height=100)
         
         
         if st.button("Update Personality"):
