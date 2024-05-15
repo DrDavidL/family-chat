@@ -17,6 +17,19 @@ from embedchain import App
 
 st.set_page_config(page_title='Family Chat', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'expanded')
 
+
+if "response" not in st.session_state:
+    st.session_state["response"] = ""
+
+if "messages" not in st.session_state:
+    st.session_state["messages"] = [{"role": "system", "content": system}]
+    
+if "full_conversation" not in st.session_state:
+    st.session_state["full_conversation"] = []
+    
+if "summarized" not in st.session_state:
+    st.session_state["summarized"] = False
+
 def parse_groq_stream(stream):
     for chunk in stream:
         if chunk.choices:
@@ -49,8 +62,9 @@ def summarize_messages_with_llm(model, messages):
                 summary_response = llm_call(model, summary_request_messages)
                 if summary_response and 'choices' in summary_response and len(summary_response['choices']) > 0:
                     summarized_response = summary_response['choices'][0]['message']['content']
+                    st.session_state.summarized = True
             except Exception as e:
-                print(f"Error during summarization with llm_call: {e}")
+                st.write(f"Error during summarization with llm_call: {e}")
     
     return summarized_response
 
@@ -178,14 +192,6 @@ if check_password():
     #         system = system_prompt
     #     st.session_state.messages = [{"role": "system", "content": system}]
         
-    if "response" not in st.session_state:
-        st.session_state["response"] = ""
-
-    if "messages" not in st.session_state:
-        st.session_state["messages"] = [{"role": "system", "content": system}]
-        
-    if "full_conversation" not in st.session_state:
-        st.session_state["full_conversation"] = []
         
   
 
@@ -305,5 +311,8 @@ if check_password():
         st.session_state["messages"] = [{"role": "system", "content": system}]
         st.sidebar.info("Full history cleared and ready to start new conversation!")
         st.session_state["full_conversation"] = []
+        
+    if st.session_state.summarized == True:
+        st.sidebar.warning("The conversation has been summarized. Please start a new conversation if earlier details needed.")
         
  
