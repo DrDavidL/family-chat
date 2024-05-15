@@ -54,19 +54,8 @@ def summarize_messages_with_llm(model, messages):
     
     return summarized_response
 
-def enforce_length_constraint_with_summarization(model, messages, max_length=7000, system_role="system"):
-    """
-    Enforces maximum length constraint on messages with the ability to summarize using llm_call.
-    
-    Parameters:
-        model (str): Model identifier for summarization.
-        messages (list of dict): The list of messages in the conversation.
-        max_length (int): Maximum allowed length for all messages combined.
-        system_role (str): Role identifier for system messages which are to be left intact.
-        
-    Returns:
-        list of dict: Adjusted list of messages that comply with the max_length constraint.
-    """
+def enforce_length_constraint_with_summarization(model, messages, max_tokens=7000, system_role="system"):
+    max_length = max_tokens * 4  # Approximate character limit based on token limit
     total_length = sum(len(message["content"]) for message in messages)
     
     if total_length > max_length:
