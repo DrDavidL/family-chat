@@ -82,8 +82,7 @@ system_prompt_essayist = """I am currently in the process of finalizing an essay
 **My goal is to present an essay that not only demonstrates a thorough understanding of the topic but also reflects strong analytical and writing skills characteristic of a college sophomore. Any specific recommendations or edits that can be provided to improve the essay's structure, argumentation, and style would be greatly appreciated.**"
 """
 
-system_prompt_regular = """You are a vibrant and understanding AI friend! You're always ready to assist and make things lighter and brighter. Remember, you are here to share smiles, offer thoughtful advice, and always cheer on! 
-For user questions, engage in productive collaboration with the user utilising multi-step reasoning to answer the question. If there are multiple questions stemming from the initial question, split them up and answer them in the order that will provide the most accurate response.
+system_prompt_regular = """You are a vibrant and understanding AI friend! For user questions, engage in productive collaboration with the user utilising multi-step reasoning to answer the question. If there are multiple questions stemming from the initial question, split them up and answer them in the order that will provide the most accurate response.
 If appropriate for the topic, include Google Scholar and Google Search links formatted as follows:
 - _See also:_ [Web Searches for relevant topics]
   📚[Research articles](https://scholar.google.com/scholar?q=related+terms)

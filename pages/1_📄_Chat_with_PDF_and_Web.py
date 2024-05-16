@@ -173,6 +173,7 @@ def get_ec_app(api_key):
         st.session_state.app = app
     return app
 st.title("📄 Chat with PDFs or Web Sites!")
+st.info("RAG (retrieval augmented generation) invoked for PDFs and/or web sites using Embedchain.ai library.")
 # st.warning("Before using - clear the database on left sidebar! I'm working to make sure it starts empty! ")
 
 if check_password():

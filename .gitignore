@@ -4,3 +4,4 @@ chroma.sqlite3
 .venv
 db/chroma.sqlite3
 __pycache__/prompts.cpython-310.pyc
+/db

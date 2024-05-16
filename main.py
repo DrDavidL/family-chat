@@ -15,7 +15,7 @@ from embedchain import App
 # Generate a random 10-digit number
 
 
-st.set_page_config(page_title='Family Chat', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'expanded')
+st.set_page_config(page_title='Core LLM Features', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'expanded')
 
 
 if "response" not in st.session_state:
@@ -154,7 +154,8 @@ def check_password():
 
 
 
-st.title("💬 Family Chat")
+st.title("💬 Chat - Core LLM Features")
+st.info("Features include memory summarization invoked when context threshold exceeded, multiple model options, personas, and text downloads.")
 
 
 
