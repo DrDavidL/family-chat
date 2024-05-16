@@ -127,3 +127,6 @@ if check_password():
                         file_name=f"generated_img_{i+1}.png",
                         mime="image/png"
                     )
+    if st.session_state.final_prompt:
+        with st.expander("Prompt Used"):
+            st.write(st.session_state.final_prompt)
