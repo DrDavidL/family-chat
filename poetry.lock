@@ -3339,16 +3339,6 @@ files = [
 ]
 
 [[package]]
-name = "pysqlite3"
-version = "0.5.2"
-description = "DB-API 2.0 interface for Sqlite 3.x"
-optional = false
-python-versions = "*"
-files = [
-    {file = "pysqlite3-0.5.2.tar.gz", hash = "sha256:0abc1756e8b39bd51c303e8fac37497ccaccc7b237c89fe3cf47ee8e614c590b"},
-]
-
-[[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 description = "Extensions to the standard Python datetime module"
@@ -5011,4 +5001,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">3.10,<3.12"
-content-hash = "d9458daeeeae35ff54a3d5acb16dfce8af8d3cdfe5e78e1507c15e4f45b0a8c8"
+content-hash = "cdf3da5934410725f0c48f35c2426417d0e2e531588a3d879f2177cea901f14b"
