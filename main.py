@@ -22,7 +22,7 @@ if "response" not in st.session_state:
     st.session_state["response"] = ""
 
 if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "system", "content": system}]
+    st.session_state["messages"] = [{"role": "system", "content": system_prompt_regular}]
     
 if "full_conversation" not in st.session_state:
     st.session_state["full_conversation"] = []
@@ -50,7 +50,7 @@ def summarize_messages_with_llm(model, messages):
     conversation_to_summarize = " ".join([msg["content"] for msg in messages if msg["role"] != "system"])
     
     # Creating a placeholder for the summarized response
-    summarized_response = "Conversation summarized for brevity."
+    
     
     with st.spinner("Summarizing conversation..."):
         if conversation_to_summarize:
@@ -59,14 +59,16 @@ def summarize_messages_with_llm(model, messages):
                     {"role": "system", "content": "Summarize the following conversation:"},
                     {"role": "user", "content": conversation_to_summarize}
                 ]
-                summary_response = llm_call(model, summary_request_messages)
-                if summary_response and 'choices' in summary_response and len(summary_response['choices']) > 0:
-                    summarized_response = summary_response['choices'][0]['message']['content']
-                    st.session_state.summarized = True
+                summary_response = llm_call(model, summary_request_messages, stream=False)
+                summarized_response = "Conversation summarized for brevity:"
+                summarized_response += summary_response
+                st.session_state.summarized = True
+                return summarized_response
             except Exception as e:
                 st.write(f"Error during summarization with llm_call: {e}")
     
-    return summarized_response
+        else:
+            return summarized_response
 
 def enforce_length_constraint_with_summarization(model, messages, max_tokens=7000, system_role="system"):
     max_length = max_tokens * 4  # Approximate character limit based on token limit
@@ -78,7 +80,7 @@ def enforce_length_constraint_with_summarization(model, messages, max_tokens=700
         other_messages = [message for message in messages if message["role"] != system_role]
         
         # Use llm_call to summarize these messages
-        summarized_content = summarize_messages_with_llm(model, other_messages)
+        summarized_content = summarize_messages_with_llm("openai/gpt-3.5-turbo", other_messages)
         
         # Reconstructing the messages list
         reduced_messages = system_messages + [{"role": "user", "content": summarized_content}]
@@ -88,7 +90,7 @@ def enforce_length_constraint_with_summarization(model, messages, max_tokens=700
     return messages
 
 
-def llm_call(model, messages):
+def llm_call(model, messages, stream=True):
     api_key = st.secrets["OPENROUTER_API_KEY"]
     client = OpenAI(
             base_url="https://openrouter.ai/api/v1",
@@ -101,19 +103,21 @@ def llm_call(model, messages):
         #     "X-Title": "GPT and Med Ed"},
         temperature = 0.5,
         max_tokens = 1000,
-        stream = True,   
+        stream = stream,   
         )
     
-
-    placeholder = st.empty()
-    full_response = ''
-    for chunk in completion:
-        if chunk.choices[0].delta.content is not None:
-            full_response += chunk.choices[0].delta.content
-            # full_response.append(chunk.choices[0].delta.content)
-            placeholder.markdown(full_response)
-    placeholder.markdown(full_response)
-    return full_response
+    if stream:
+        placeholder = st.empty()
+        full_response = ''
+        for chunk in completion:
+            if chunk.choices[0].delta.content is not None:
+                full_response += chunk.choices[0].delta.content
+                # full_response.append(chunk.choices[0].delta.content)
+                placeholder.markdown(full_response)
+        placeholder.markdown(full_response)
+        return full_response
+    else:
+        return completion.choices[0].message.content
 
 
 def check_password():
