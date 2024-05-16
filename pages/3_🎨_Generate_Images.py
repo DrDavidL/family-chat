@@ -14,7 +14,7 @@ OPENAI_URL = "https://api.openai.com/v1/images/generations"
 def better_image_prompt(initial_prompt: str, system_prompt: str) -> str:
     client = OpenAI(base_url="https://api.openai.com/v1", api_key=st.secrets["OPENAI_API_KEY"])
     response = client.chat.completions.create(
-        model="gpt-4-turbo",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": f'user prompt: {initial_prompt}'}

@@ -11,8 +11,9 @@ improve_image_prompt = """Imagine you're crafting a prompt for the DALL·E 3, a 
 
 5. **Intended Emotion or Theme**: Clarify the mood, emotions, or overarching theme you wish to convey. Whether it’s serene tranquility or vibrant energy, specify how you want your viewer to feel.
 
-**Sample Optimized Prompt**:
-"Generate a serene, early morning landscape of the Scottish Highlands during autumn. The scene should include a misty, rolling hillside with heather and bracken in hues of purple and gold. A solitary stag stands silhouetted against the rising sun, which casts a warm golden light over the scene. Incorporate a realism art style, aiming for a detailed and emotive representation that conveys a sense of tranquil solitude and awe-inspiring natural beauty."
+N.B: Return ONLY the optimized prompt. No additional commentary! A Sample Optimized Prompt, no more:
+
+Generate a serene, early morning landscape of the Scottish Highlands during autumn. The scene should include a misty, rolling hillside with heather and bracken in hues of purple and gold. A solitary stag stands silhouetted against the rising sun, which casts a warm golden light over the scene. Incorporate a realism art style, aiming for a detailed and emotive representation that conveys a sense of tranquil solitude and awe-inspiring natural beauty.
 """
 
 system_prompt_expert = """# Enhanced Assistant Guidance for Scientists
