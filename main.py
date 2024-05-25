@@ -21,7 +21,7 @@ st.set_page_config(page_title='Family Chat', layout = 'centered', page_icon = ':
 
 if "auth" not in st.session_state:
     # create a button to start the OAuth2 flow
-    oauth2 = OAuth2Component(st.secrets['CLIENT_ID'], st.secrets['CLIENT_SECRET'], st.secrets['AUTHORIZE_ENDPOINT'], st.secrets['TOKEN_ENDPOINT'], st.secrets['TOKEN_ENDPOINT'], st.secets['REVOKE_ENDPOINT'])
+    oauth2 = OAuth2Component(st.secrets['CLIENT_ID'], st.secrets['CLIENT_SECRET'], st.secrets['AUTHORIZE_ENDPOINT'], st.secrets['TOKEN_ENDPOINT'], st.secrets['TOKEN_ENDPOINT'], st.secrets['REVOKE_ENDPOINT'])
     result = oauth2.authorize_button(
         name="Continue with Google",
         icon="https://www.google.com.tw/favicon.ico",
