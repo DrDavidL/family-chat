@@ -56,6 +56,31 @@ else:
 
 
 
+import sqlite3
+
+# Initialize database connection
+conn = sqlite3.connect('conversations.db')
+c = conn.cursor()
+c.execute('''CREATE TABLE IF NOT EXISTS conversations (user_email TEXT, conversation TEXT)''')
+conn.commit()
+
+def save_conversation(user_email, conversation):
+    c.execute('REPLACE INTO conversations (user_email, conversation) VALUES (?, ?)', (user_email, conversation))
+    conn.commit()
+
+def load_conversation(user_email):
+    c.execute('SELECT conversation FROM conversations WHERE user_email = ?', (user_email,))
+    result = c.fetchone()
+    return result[0] if result else ""
+
+# Load conversation on user login
+if 'user' in st.session_state:
+    st.session_state['full_conversation'] = load_conversation(st.session_state['user'])
+
+# Save conversation on session end or user request
+if st.button('Save Conversation'):
+    save_conversation(st.session_state['user'], st.session_state['full_conversation'])
+    st.success("Conversation saved.")
 
 
 
@@ -203,165 +228,164 @@ st.title("💬 Family Chat")
 
 
 
-if check_password():
-    st.info("Type your questions at the bottom of the page!")
 
-    with st.sidebar:
-        st.title('Customization')
-        st.session_state.model = st.selectbox("Model Options", ("anthropic/claude-3-haiku", "groq-fast-llama3",
-        "anthropic/claude-3-sonnet", "anthropic/claude-3-opus", "gpt-4o", "openai/gpt-3.5-turbo", "openai/gpt-4-turbo", 
-        "google/gemini-pro", "google/gemini-pro-1.5","meta-llama/llama-3-70b-instruct:nitro", ), index=1)
-        st.info("Choose personality, edit as needed, and click update personality below.")    
-        pick_prompt = st.radio("Pick a personality", ("Revise and improve an essay", "Regular user", "Expert Answers", ), index=1)
-        if pick_prompt == "Revise and improve an essay":
-            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_essayist, height=100)
-        elif pick_prompt == "Regular user":
-            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_regular, height=100)
-        elif pick_prompt == "Expert Answers":
-            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_expert, height=100)
-        elif pick_prompt == "Other":
-            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_regular, height=100)
-        
-        
-        if st.button("Update Personality"):
-            st.session_state.messages += [{"role": "system", "content": f'Ignore prior guidance and use this system prompt: {system}'}]
-            
-            
-            
-            
-        
-        # Initialize chat history
+st.info("Type your questions at the bottom of the page!")
 
+with st.sidebar:
+    st.title('Customization')
+    st.session_state.model = st.selectbox("Model Options", ("anthropic/claude-3-haiku", "groq-fast-llama3",
+    "anthropic/claude-3-sonnet", "anthropic/claude-3-opus", "gpt-4o", "openai/gpt-3.5-turbo", "openai/gpt-4-turbo", 
+    "google/gemini-pro", "google/gemini-pro-1.5","meta-llama/llama-3-70b-instruct:nitro", ), index=1)
+    st.info("Choose personality, edit as needed, and click update personality below.")    
+    pick_prompt = st.radio("Pick a personality", ("Revise and improve an essay", "Regular user", "Expert Answers", ), index=1)
+    if pick_prompt == "Revise and improve an essay":
+        system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_essayist, height=100)
+    elif pick_prompt == "Regular user":
+        system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_regular, height=100)
+    elif pick_prompt == "Expert Answers":
+        system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_expert, height=100)
+    elif pick_prompt == "Other":
+        system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_regular, height=100)
+    
+    
+    if st.button("Update Personality"):
+        st.session_state.messages += [{"role": "system", "content": f'Ignore prior guidance and use this system prompt: {system}'}]
         
-    # if st.sidebar.checkbox("Change personality? (Will clear history.)"):
-    #     persona = st.sidebar.radio("Pick the persona", ("Regular user", "Physician"), index=1)
-    #     if persona == "Regular user":
-    #         system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt2)
-    #     else:
-    #         system = system_prompt
-    #     st.session_state.messages = [{"role": "system", "content": system}]
         
         
-  
+        
+    
+    # Initialize chat history
 
-            # Audio selection
+    
+# if st.sidebar.checkbox("Change personality? (Will clear history.)"):
+#     persona = st.sidebar.radio("Pick the persona", ("Regular user", "Physician"), index=1)
+#     if persona == "Regular user":
+#         system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt2)
+#     else:
+#         system = system_prompt
+#     st.session_state.messages = [{"role": "system", "content": system}]
+    
     
 
+
+        # Audio selection
+
+
+for message in st.session_state.full_conversation:
+    if message["role"] == "user":
+        with st.chat_message(message["role"], avatar="👩‍⚕️"):
+            st.markdown(message["content"])
+    elif message["role"] == "assistant":
+        with st.chat_message(message["role"], avatar="🤓"):
+            st.markdown(message["content"])
+
+
+
+
+
+# Accept user input
+if prompt := st.chat_input("What's up?"):
+    # Add user message to chat history
+    # Assuming you've selected a model in your Streamlit app.
+    model_id = st.session_state.model
+
+    # Enforce length constraint and summarize if necessary
+    st.session_state.messages =  enforce_length_constraint_with_summarization(model_id, st.session_state.messages)
+
+    # # Proceed with the regular llm_call
+    # response = llm_call(model_id, st.session_state.messages)
+
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.session_state.full_conversation.append({"role": "user", "content": prompt})
+    # Display user message in chat message container
+    with st.chat_message("user", avatar="👩‍⚕️"):
+        st.markdown(prompt)
+        
+        # Display assistant response in chat message container
+    # with st.spinner("Thinking..."):
+    #     try:
+    #         stream = llm_call(st.session_state.model, st.session_state.messages)
+    #     except Exception as e:
+    #         st.error(f"Error (Call Dad or re-start the app): {e}")
+    #         st.stop()
+
+    with st.chat_message("assistant", avatar="🤓"): 
+        if st.session_state.model == "groq-fast-llama3":            
+            stream = groq_client.chat.completions.create(
+            model="llama3-70b-8192",
+            messages=[
+                {"role": m["role"], "content": m["content"]}
+                for m in st.session_state.messages
+            ],
+            temperature=0.5,
+            stream=True,
+            )
+            response = st.write_stream(parse_groq_stream(stream))
+        elif st.session_state.model == "gpt-4o":
+            api_key = st.secrets["OPENAI_API_KEY"]
+            client = OpenAI(
+                    base_url="https://api.openai.com/v1",
+                    api_key=api_key,
+            )
+            completion = client.chat.completions.create(
+                model = st.session_state.model,
+                messages = st.session_state.messages,
+                # headers={ "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
+                #     "X-Title": "GPT and Med Ed"},
+                temperature = 0.5,
+                max_tokens = 1000,
+                stream = True,   
+                )     
+        
+            # placeholder = st.empty()
+            response =st.write_stream(completion)
+            
+        else:
+            api_key = st.secrets["OPENROUTER_API_KEY"]
+            client = OpenAI(
+                    base_url="https://openrouter.ai/api/v1",
+                    api_key=api_key,
+                )
+            completion = client.chat.completions.create(
+                model = st.session_state.model,
+                messages = st.session_state.messages,
+                # headers={ "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
+                #     "X-Title": "GPT and Med Ed"},
+                temperature = 0.5,
+                max_tokens = 1000,
+                stream = True,   
+                )     
+        
+            # placeholder = st.empty()
+            response =st.write_stream(completion)
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        st.session_state.full_conversation.append({"role": "assistant", "content": response})
+        st.session_state.response = response
+
+            
+
+
+# if st.session_state["full_conversation"]:
+if st.session_state.response:
+    conversation_str = ""
     for message in st.session_state.full_conversation:
         if message["role"] == "user":
-            with st.chat_message(message["role"], avatar="👩‍⚕️"):
-                st.markdown(message["content"])
+            conversation_str += "👩‍⚕️: " + message["content"] + "\n\n"
         elif message["role"] == "assistant":
-            with st.chat_message(message["role"], avatar="🤓"):
-                st.markdown(message["content"])
+            conversation_str += "🤓: " + message["content"] + "\n\n"
+    html = markdown2.markdown(conversation_str, extras=["tables"])
+    st.download_button('Download the conversation when done!', html, f'response.html', 'text/html')
 
-
-
-
+if st.sidebar.button("Clear chat memory. (Leaves Conversation intact for downloading still.) (click twice to confirm)"):
+    st.session_state["messages"] = [{"role": "system", "content": system}]
+    st.sidebar.info("Chat memory cleared and ready to start new conversation!")
     
-# Accept user input
-    if prompt := st.chat_input("What's up?"):
-        # Add user message to chat history
-        # Assuming you've selected a model in your Streamlit app.
-        model_id = st.session_state.model
-
-        # Enforce length constraint and summarize if necessary
-        st.session_state.messages =  enforce_length_constraint_with_summarization(model_id, st.session_state.messages)
-
-        # # Proceed with the regular llm_call
-        # response = llm_call(model_id, st.session_state.messages)
-
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        st.session_state.full_conversation.append({"role": "user", "content": prompt})
-        # Display user message in chat message container
-        with st.chat_message("user", avatar="👩‍⚕️"):
-            st.markdown(prompt)
-            
-            # Display assistant response in chat message container
-        # with st.spinner("Thinking..."):
-        #     try:
-        #         stream = llm_call(st.session_state.model, st.session_state.messages)
-        #     except Exception as e:
-        #         st.error(f"Error (Call Dad or re-start the app): {e}")
-        #         st.stop()
-
-        with st.chat_message("assistant", avatar="🤓"): 
-            if st.session_state.model == "groq-fast-llama3":            
-                stream = groq_client.chat.completions.create(
-                model="llama3-70b-8192",
-                messages=[
-                    {"role": m["role"], "content": m["content"]}
-                    for m in st.session_state.messages
-                ],
-                temperature=0.5,
-                stream=True,
-                )
-                response = st.write_stream(parse_groq_stream(stream))
-            elif st.session_state.model == "gpt-4o":
-                api_key = st.secrets["OPENAI_API_KEY"]
-                client = OpenAI(
-                        base_url="https://api.openai.com/v1",
-                        api_key=api_key,
-                )
-                completion = client.chat.completions.create(
-                    model = st.session_state.model,
-                    messages = st.session_state.messages,
-                    # headers={ "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
-                    #     "X-Title": "GPT and Med Ed"},
-                    temperature = 0.5,
-                    max_tokens = 1000,
-                    stream = True,   
-                    )     
-            
-                # placeholder = st.empty()
-                response =st.write_stream(completion)
-                
-            else:
-                api_key = st.secrets["OPENROUTER_API_KEY"]
-                client = OpenAI(
-                        base_url="https://openrouter.ai/api/v1",
-                        api_key=api_key,
-                    )
-                completion = client.chat.completions.create(
-                    model = st.session_state.model,
-                    messages = st.session_state.messages,
-                    # headers={ "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
-                    #     "X-Title": "GPT and Med Ed"},
-                    temperature = 0.5,
-                    max_tokens = 1000,
-                    stream = True,   
-                    )     
-            
-                # placeholder = st.empty()
-                response =st.write_stream(completion)
-            st.session_state.messages.append({"role": "assistant", "content": response})
-            st.session_state.full_conversation.append({"role": "assistant", "content": response})
-            st.session_state.response = response
+if st.sidebar.button("Clear recorded conversation and memory. (click twice to confirm)"):
+    st.session_state["messages"] = [{"role": "system", "content": system}]
+    st.sidebar.info("Full history cleared and ready to start new conversation!")
+    st.session_state["full_conversation"] = []
     
-                
+if st.session_state.summarized == True:
+    st.sidebar.warning("The conversation has been summarized. Please start a new conversation if earlier details needed.")
     
-
-    # if st.session_state["full_conversation"]:
-    if st.session_state.response:
-        conversation_str = ""
-        for message in st.session_state.full_conversation:
-            if message["role"] == "user":
-                conversation_str += "👩‍⚕️: " + message["content"] + "\n\n"
-            elif message["role"] == "assistant":
-                conversation_str += "🤓: " + message["content"] + "\n\n"
-        html = markdown2.markdown(conversation_str, extras=["tables"])
-        st.download_button('Download the conversation when done!', html, f'response.html', 'text/html')
-    
-    if st.sidebar.button("Clear chat memory. (Leaves Conversation intact for downloading still.) (click twice to confirm)"):
-        st.session_state["messages"] = [{"role": "system", "content": system}]
-        st.sidebar.info("Chat memory cleared and ready to start new conversation!")
-        
-    if st.sidebar.button("Clear recorded conversation and memory. (click twice to confirm)"):
-        st.session_state["messages"] = [{"role": "system", "content": system}]
-        st.sidebar.info("Full history cleared and ready to start new conversation!")
-        st.session_state["full_conversation"] = []
-        
-    if st.session_state.summarized == True:
-        st.sidebar.warning("The conversation has been summarized. Please start a new conversation if earlier details needed.")
-        
- 
