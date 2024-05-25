@@ -6,6 +6,7 @@ import threading
 import pandas as pd
 import requests
 
+
 import streamlit as st
 
 from embedchain import App
@@ -101,37 +102,37 @@ def process_data(data):
 # if st.session_state.messages_web is not None:
 #     app = App()
 #     app.reset()
-def check_password():
-    """Returns `True` if the user had the correct password."""
+# def check_password():
+#     """Returns `True` if the user had the correct password."""
 
-    def password_entered():
-        """Checks whether a password entered by the user is correct."""
-        if st.session_state["password"] == st.secrets["password"]:
-            st.session_state["password_correct"] = True
-            app = App()
-            app.reset()
-            del st.session_state["password"]  # don't store password
-        else:
-            st.session_state["password_correct"] = False
+#     def password_entered():
+#         """Checks whether a password entered by the user is correct."""
+#         if st.session_state["password"] == st.secrets["password"]:
+#             st.session_state["password_correct"] = True
+#             app = App()
+#             app.reset()
+#             del st.session_state["password"]  # don't store password
+#         else:
+#             st.session_state["password_correct"] = False
 
-    if "password_correct" not in st.session_state:
-        # First run, show input for password.
-        # random_number = random.randint(1000000000, 9999999999)
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key='password'
-        )
-        st.write("*Please contact David Liebovitz, MD if you need an updated password for access.*")
-        return False
-    elif not st.session_state["password_correct"]:
-        # Password not correct, show input + error.
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
-        st.error("😕 Password incorrect")
-        return False
-    else:
-        # Password correct.
-        return True
+#     if "password_correct" not in st.session_state:
+#         # First run, show input for password.
+#         # random_number = random.randint(1000000000, 9999999999)
+#         st.text_input(
+#             "Password", type="password", on_change=password_entered, key='password'
+#         )
+#         st.write("*Please contact David Liebovitz, MD if you need an updated password for access.*")
+#         return False
+#     elif not st.session_state["password_correct"]:
+#         # Password not correct, show input + error.
+#         st.text_input(
+#             "Password", type="password", on_change=password_entered, key="password"
+#         )
+#         st.error("😕 Password incorrect")
+#         return False
+#     else:
+#         # Password correct.
+#         return True
 def embedchain_bot(db_path, api_key):
     return App.from_config(
         config={
@@ -175,7 +176,10 @@ def get_ec_app(api_key):
 st.title("📄 Chat with PDFs or Web Sites!")
 # st.warning("Before using - clear the database on left sidebar! I'm working to make sure it starts empty! ")
 
-if check_password():
+if "password_correct" not in st.session_state:
+    st.session_state["password_correct"] = False
+
+if st.session_state["password_correct"] == True:
     
     if "data_type" not in st.session_state:
         st.session_state.data_type = "pdf"
@@ -383,3 +387,6 @@ site:www.cell.com OR site:www.nature.com OR site:www.springer.com OR site:www.wi
 #   journal = {GitHub repository},
 #   howpublished = {\url{https://github.com/embedchain/embedchain}},
 # }
+
+else:
+    st.warning("Please return to the Main page to enter your password.")
