@@ -19,6 +19,8 @@ groq = "^0.5.0"
 pandas = "^2.2.2"
 loguru = "^0.7.2"
 trafilatura = "^1.9.0"
+httpx-oauth = "^0.14.1"
+streamlit-oauth = "^0.1.8"
 
 
 [build-system]

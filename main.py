@@ -3,6 +3,7 @@ from prompts import *
 import markdown2
 from openai import OpenAI
 import requests
+import base64
 import json
 import random
 from groq import Groq
@@ -11,11 +12,55 @@ groq_client = Groq(api_key = st.secrets['GROQ_API_KEY'])
 import sys
 # sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 from embedchain import App
+from streamlit_oauth import OAuth2Component
 
-# Generate a random 10-digit number
+
 
 
 st.set_page_config(page_title='Family Chat', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'expanded')
+
+if "auth" not in st.session_state:
+    # create a button to start the OAuth2 flow
+    oauth2 = OAuth2Component(st.secrets['CLIENT_ID'], st.secrets['CLIENT_SECRET'], st.secrets['AUTHORIZE_ENDPOINT'], st.secrets['TOKEN_ENDPOINT'], st.secrets['TOKEN_ENDPOINT'], st.secets['REVOKE_ENDPOINT'])
+    result = oauth2.authorize_button(
+        name="Continue with Google",
+        icon="https://www.google.com.tw/favicon.ico",
+        redirect_uri="https://family-chat-beta.streamlit.app/component/streamlit_oauth.authorize_button",
+        scope="openid email profile",
+        key="google",
+        extras_params={"prompt": "consent", "access_type": "offline"},
+        use_container_width=True,
+        pkce='S256',
+    )
+    
+    if result:
+        st.write(result)
+        # decode the id_token jwt and get the user's email address
+        id_token = result["token"]["id_token"]
+        # verify the signature is an optional step for security
+        payload = id_token.split(".")[1]
+        # add padding to the payload if needed
+        payload += "=" * (-len(payload) % 4)
+        payload = json.loads(base64.b64decode(payload))
+        email = payload["email"]
+        st.session_state["auth"] = email
+        st.session_state["token"] = result["token"]
+        st.rerun()
+else:
+    st.write("You are logged in!")
+    st.write(st.session_state["auth"])
+    st.write(st.session_state["token"])
+    if st.button("Logout"):
+        del st.session_state["auth"]
+        del st.session_state["token"]
+
+
+
+
+
+
+
+
 
 
 if "response" not in st.session_state:

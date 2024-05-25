@@ -1648,6 +1648,20 @@ http2 = ["h2 (>=3,<5)"]
 socks = ["socksio (==1.*)"]
 
 [[package]]
+name = "httpx-oauth"
+version = "0.14.1"
+description = "Async OAuth client using HTTPX"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "httpx_oauth-0.14.1-py3-none-any.whl", hash = "sha256:3ccf35760d157a9abbf4a78024b744b5532ec5d4d03fc1db3e71123ce9d33e32"},
+    {file = "httpx_oauth-0.14.1.tar.gz", hash = "sha256:e58c60bce99568b4e98ce88abf0e2111a9b6c7f79c29bea88cc89d9edb78dfbc"},
+]
+
+[package.dependencies]
+httpx = ">=0.18,<1.0.0"
+
+[[package]]
 name = "huggingface-hub"
 version = "0.23.0"
 description = "Client library to download and publish models, datasets and other repos on the huggingface.co hub"
@@ -4019,6 +4033,22 @@ watchdog = {version = ">=2.1.5", markers = "platform_system != \"Darwin\""}
 snowflake = ["snowflake-connector-python (>=2.8.0)", "snowflake-snowpark-python (>=0.9.0)"]
 
 [[package]]
+name = "streamlit-oauth"
+version = "0.1.8"
+description = "Simple OAuth2 authorization code flow for Streamlit"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "streamlit-oauth-0.1.8.tar.gz", hash = "sha256:c49849526c86add96728db18bd32f247e315fe85877b8137093e45ab0550a5e7"},
+    {file = "streamlit_oauth-0.1.8-py3-none-any.whl", hash = "sha256:f1decb2f1c42201692c2614b3f6af4aa4824923c1db8c1f996f1ba8ba74ab89c"},
+]
+
+[package.dependencies]
+httpx-oauth = ">=0.4.0"
+python-dotenv = ">=1.0.0"
+streamlit = ">=1.28.0"
+
+[[package]]
 name = "sympy"
 version = "1.12"
 description = "Computer algebra system (CAS) in Python"
@@ -4995,4 +5025,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">3.10,<3.12"
-content-hash = "d9458daeeeae35ff54a3d5acb16dfce8af8d3cdfe5e78e1507c15e4f45b0a8c8"
+content-hash = "f607d66b36399cb233deb173ff30181dabce1425f982c81ecbdeabb233345e96"
