@@ -1,322 +1,171 @@
+# app.py
 import streamlit as st
-from prompts import *
-import markdown2
 from openai import OpenAI
-import requests
-import json
 import random
-from groq import Groq
-groq_client = Groq(api_key = st.secrets['GROQ_API_KEY'])
-# __import__('pysqlite3')
-import sys
-# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+import json
+import markdown2
+import requests
+
+from prompts import system_prompt_regular, system_prompt_essayist, system_prompt_expert
 from embedchain import App
+from groq import Groq
 
-# Generate a random 10-digit number
+# Initialize Groq client
+groq_client = Groq(api_key=st.secrets['GROQ_API_KEY'])
 
+# Streamlit page configuration
+st.set_page_config(page_title='Family Chat', layout='centered', page_icon=':stethoscope:', initial_sidebar_state='expanded')
 
-st.set_page_config(page_title='Family Chat', layout = 'centered', page_icon = ':stethoscope:', initial_sidebar_state = 'expanded')
+# Initialize session states
+for key in ["response", "messages", "full_conversation", "summarized"]:
+    if key not in st.session_state:
+        st.session_state[key] = "" if key == "response" else [] if key in ["messages", "full_conversation"] else False
 
-
-if "response" not in st.session_state:
-    st.session_state["response"] = ""
-
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "system", "content": system_prompt_regular}]
-    
-if "full_conversation" not in st.session_state:
-    st.session_state["full_conversation"] = []
-    
-if "summarized" not in st.session_state:
-    st.session_state["summarized"] = False
-
+# Function to parse Groq stream data
 def parse_groq_stream(stream):
     for chunk in stream:
-        if chunk.choices:
-            if chunk.choices[0].delta.content is not None:
-                yield chunk.choices[0].delta.content
-def summarize_messages_with_llm(model, messages):
-    """
-    Uses the llm_call function to summarize older conversations.
-    
-    Parameters:
-        model (str): Model identifier for making API calls.
-        messages (list of dict): The messages to summarize.
+        if chunk.choices and chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
 
-    Returns:
-        str: Summarized content as a string.
-    """
-    # Combine messages into a single string for summarization
+# Function to summarize messages with a language model
+def summarize_messages_with_llm(model, messages):
     conversation_to_summarize = " ".join([msg["content"] for msg in messages if msg["role"] != "system"])
-    
-    # Creating a placeholder for the summarized response
-    
-    
-    with st.spinner("Summarizing conversation..."):
-        if conversation_to_summarize:
-            try:
+    if conversation_to_summarize:
+        try:
+            with st.spinner("Summarizing conversation..."):
                 summary_request_messages = [
                     {"role": "system", "content": "Summarize the following conversation:"},
                     {"role": "user", "content": conversation_to_summarize}
                 ]
                 summary_response = llm_call(model, summary_request_messages, stream=False)
-                summarized_response = "Conversation summarized for brevity:"
-                summarized_response += summary_response
+                summarized_response = f"Conversation summarized for brevity: {summary_response}"
                 st.session_state.summarized = True
                 return summarized_response
-            except Exception as e:
-                st.write(f"Error during summarization with llm_call: {e}")
-    
-        else:
-            return summarized_response
+        except Exception as e:
+            st.error(f"Error during summarization: {e}")
+    return "No content to summarize."
 
+# Function to enforce length constraints with summarization
 def enforce_length_constraint_with_summarization(model, messages, max_tokens=7000, system_role="system"):
-    max_length = max_tokens * 4  # Approximate character limit based on token limit
+    max_length = max_tokens * 4
     total_length = sum(len(message["content"]) for message in messages)
-    
     if total_length > max_length:
-        # Separating system messages and other messages
         system_messages = [message for message in messages if message["role"] == system_role]
         other_messages = [message for message in messages if message["role"] != system_role]
-        
-        # Use llm_call to summarize these messages
-        summarized_content = summarize_messages_with_llm("openai/gpt-3.5-turbo", other_messages)
-        
-        # Reconstructing the messages list
+        summarized_content = summarize_messages_with_llm(model, other_messages)
         reduced_messages = system_messages + [{"role": "user", "content": summarized_content}]
-        
         return reduced_messages
-
     return messages
 
-
-def llm_call(model, messages, stream=True):
-    api_key = st.secrets["OPENROUTER_API_KEY"]
-    client = OpenAI(
-            base_url="https://openrouter.ai/api/v1",
-            api_key=api_key,
-        )
-    completion = client.chat.completions.create(
-        model = model,
-        messages = messages,
-        # headers={ "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
-        #     "X-Title": "GPT and Med Ed"},
-        temperature = 0.5,
-        max_tokens = 1000,
-        stream = stream,   
-        )
+def set_client(model):
+    if model == "llama3-70b-8192":
+        client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+    elif model in ["gpt-4o", "gpt-3.5-turbo", "gpt-4-turbo"]:
+        client = OpenAI(base_url="https://api.openai.com/v1", api_key=st.secrets["OPENAI_API_KEY"])
+    else:
+        client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key = st.secrets["OPENROUTER_API_KEY"])
+    return client
     
+
+# Function to make API calls to the language model
+def llm_call(model, messages, stream=True):
+    client = set_client(model)
+    completion = client.chat.completions.create(model=model, messages=messages, temperature=0.5, max_tokens=1000, stream=stream)
     if stream:
+        full_response = ""
         placeholder = st.empty()
-        full_response = ''
         for chunk in completion:
-            if chunk.choices[0].delta.content is not None:
+            if chunk.choices[0].delta.content:
                 full_response += chunk.choices[0].delta.content
-                # full_response.append(chunk.choices[0].delta.content)
                 placeholder.markdown(full_response)
-        placeholder.markdown(full_response)
         return full_response
     else:
         return completion.choices[0].message.content
 
-
+# Function to check user password
 def check_password():
-    """Returns `True` if the user had the correct password."""
-
     def password_entered():
-        """Checks whether a password entered by the user is correct."""
         if st.session_state["password"] == st.secrets["password"]:
             st.session_state["password_correct"] = True
             app = App()
             app.reset()
-            del st.session_state["password"]  # don't store password
+            del st.session_state["password"]
         else:
             st.session_state["password_correct"] = False
 
     if "password_correct" not in st.session_state:
-        # First run, show input for password.
-        # random_number = random.randint(1000000000, 9999999999)
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key='password'
-        )
+        st.text_input("Password", type="password", on_change=password_entered, key='password')
         st.write("*Please contact David Liebovitz, MD if you need an updated password for access.*")
         return False
     elif not st.session_state["password_correct"]:
-        # Password not correct, show input + error.
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
+        st.text_input("Password", type="password", on_change=password_entered, key="password")
         st.error("😕 Password incorrect")
         return False
-    else:
-        # Password correct.
-        return True
+    return True
 
-
-
+# Main Streamlit app layout and functionality
 st.title("💬 Family Chat")
-
-
 
 if check_password():
     st.info("Type your questions at the bottom of the page!")
-
     with st.sidebar:
         st.title('Customization')
-        st.session_state.model = st.selectbox("Model Options", ("anthropic/claude-3-haiku", "groq-fast-llama3",
-        "anthropic/claude-3-sonnet", "anthropic/claude-3-opus", "gpt-4o", "openai/gpt-3.5-turbo", "openai/gpt-4-turbo", 
-        "google/gemini-pro", "google/gemini-pro-1.5","meta-llama/llama-3-70b-instruct:nitro", ), index=1)
-        st.info("Choose personality, edit as needed, and click update personality below.")    
-        pick_prompt = st.radio("Pick a personality", ("Revise and improve an essay", "Regular user", "Expert Answers", ), index=1)
+        st.session_state.model = st.selectbox("Model Options", (
+            "anthropic/claude-3-haiku", "llama3-70b-8192", "anthropic/claude-3-sonnet",
+            "anthropic/claude-3-opus", "gpt-4o", "gpt-3.5-turbo", "gpt-4-turbo", 
+            "google/gemini-pro", "google/gemini-pro-1.5", "meta-llama/llama-3-70b-instruct:nitro"), index=1)
+        
+        pick_prompt = st.radio("Pick a personality", ("Revise and improve an essay", "Regular user", "Expert Answers"), index=1)
         if pick_prompt == "Revise and improve an essay":
             system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_essayist, height=100)
         elif pick_prompt == "Regular user":
             system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_regular, height=100)
         elif pick_prompt == "Expert Answers":
             system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_expert, height=100)
-        elif pick_prompt == "Other":
-            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_regular, height=100)
-        
         
         if st.button("Update Personality"):
-            st.session_state.messages += [{"role": "system", "content": f'Ignore prior guidance and use this system prompt: {system}'}]
-            
-            
-            
-            
-        
-        # Initialize chat history
+            st.session_state.messages.append({"role": "system", "content": f'Ignore prior guidance and use this system prompt: {system}'})
 
-        
-    # if st.sidebar.checkbox("Change personality? (Will clear history.)"):
-    #     persona = st.sidebar.radio("Pick the persona", ("Regular user", "Physician"), index=1)
-    #     if persona == "Regular user":
-    #         system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt2)
-    #     else:
-    #         system = system_prompt
-    #     st.session_state.messages = [{"role": "system", "content": system}]
-        
-        
-  
-
-            # Audio selection
-    
-
+    # Display conversation history
     for message in st.session_state.full_conversation:
-        if message["role"] == "user":
-            with st.chat_message(message["role"], avatar="👩‍⚕️"):
-                st.markdown(message["content"])
-        elif message["role"] == "assistant":
-            with st.chat_message(message["role"], avatar="🤓"):
-                st.markdown(message["content"])
+        avatar = "👩‍⚕️" if message["role"] == "user" else "🤓"
+        with st.chat_message(message["role"], avatar=avatar):
+            st.markdown(message["content"])
 
-
-
-
-    
-# Accept user input
+    # Accept user input and process it
     if prompt := st.chat_input("What's up?"):
-        # Add user message to chat history
-        # Assuming you've selected a model in your Streamlit app.
-        model_id = st.session_state.model
-
-        # Enforce length constraint and summarize if necessary
-        st.session_state.messages =  enforce_length_constraint_with_summarization(model_id, st.session_state.messages)
-
-        # # Proceed with the regular llm_call
-        # response = llm_call(model_id, st.session_state.messages)
-
         st.session_state.messages.append({"role": "user", "content": prompt})
         st.session_state.full_conversation.append({"role": "user", "content": prompt})
-        # Display user message in chat message container
         with st.chat_message("user", avatar="👩‍⚕️"):
             st.markdown(prompt)
-            
-            # Display assistant response in chat message container
-        # with st.spinner("Thinking..."):
-        #     try:
-        #         stream = llm_call(st.session_state.model, st.session_state.messages)
-        #     except Exception as e:
-        #         st.error(f"Error (Call Dad or re-start the app): {e}")
-        #         st.stop()
+        with st.chat_message("assistant", avatar="🤓"):
+            try:
+                st.session_state.messages = enforce_length_constraint_with_summarization(st.session_state.model, st.session_state.messages)
+                response = llm_call(st.session_state.model, st.session_state.messages)
+                st.session_state.messages.append({"role": "assistant", "content": response})
+                st.session_state.full_conversation.append({"role": "assistant", "content": response})
+                st.session_state.response = response
+            except Exception as e:
+                st.error(f"Error: {e}")
 
-        with st.chat_message("assistant", avatar="🤓"): 
-            if st.session_state.model == "groq-fast-llama3":            
-                stream = groq_client.chat.completions.create(
-                model="llama3-70b-8192",
-                messages=[
-                    {"role": m["role"], "content": m["content"]}
-                    for m in st.session_state.messages
-                ],
-                temperature=0.5,
-                stream=True,
-                )
-                response = st.write_stream(parse_groq_stream(stream))
-            elif st.session_state.model == "gpt-4o":
-                api_key = st.secrets["OPENAI_API_KEY"]
-                client = OpenAI(
-                        base_url="https://api.openai.com/v1",
-                        api_key=api_key,
-                )
-                completion = client.chat.completions.create(
-                    model = st.session_state.model,
-                    messages = st.session_state.messages,
-                    # headers={ "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
-                    #     "X-Title": "GPT and Med Ed"},
-                    temperature = 0.5,
-                    max_tokens = 1000,
-                    stream = True,   
-                    )     
-            
-                # placeholder = st.empty()
-                response =st.write_stream(completion)
-                
-            else:
-                api_key = st.secrets["OPENROUTER_API_KEY"]
-                client = OpenAI(
-                        base_url="https://openrouter.ai/api/v1",
-                        api_key=api_key,
-                    )
-                completion = client.chat.completions.create(
-                    model = st.session_state.model,
-                    messages = st.session_state.messages,
-                    # headers={ "HTTP-Referer": "https://fsm-gpt-med-ed.streamlit.app", # To identify your app
-                    #     "X-Title": "GPT and Med Ed"},
-                    temperature = 0.5,
-                    max_tokens = 1000,
-                    stream = True,   
-                    )     
-            
-                # placeholder = st.empty()
-                response =st.write_stream(completion)
-            st.session_state.messages.append({"role": "assistant", "content": response})
-            st.session_state.full_conversation.append({"role": "assistant", "content": response})
-            st.session_state.response = response
-    
-                
-    
-
-    # if st.session_state["full_conversation"]:
-    if st.session_state.response:
-        conversation_str = ""
-        for message in st.session_state.full_conversation:
-            if message["role"] == "user":
-                conversation_str += "👩‍⚕️: " + message["content"] + "\n\n"
-            elif message["role"] == "assistant":
-                conversation_str += "🤓: " + message["content"] + "\n\n"
+    # Offer download option for the conversation
+    if st.session_state.full_conversation:
+        conversation_str = "\n\n".join(
+            f"👩‍⚕️: {msg['content']}" if msg["role"] == "user" else f"🤓: {msg['content']}"
+            for msg in st.session_state.full_conversation
+        )
         html = markdown2.markdown(conversation_str, extras=["tables"])
-        st.download_button('Download the conversation when done!', html, f'response.html', 'text/html')
-    
-    if st.sidebar.button("Clear chat memory. (Leaves Conversation intact for downloading still.) (click twice to confirm)"):
+        st.download_button('Download the conversation', html, f'conversation.html', 'text/html')
+
+    # Sidebar options to clear chat memory
+    if st.sidebar.button("Clear chat memory (click twice to confirm)"):
         st.session_state["messages"] = [{"role": "system", "content": system}]
         st.sidebar.info("Chat memory cleared and ready to start new conversation!")
-        
-    if st.sidebar.button("Clear recorded conversation and memory. (click twice to confirm)"):
+    
+    if st.sidebar.button("Clear recorded conversation and memory (click twice to confirm)"):
         st.session_state["messages"] = [{"role": "system", "content": system}]
-        st.sidebar.info("Full history cleared and ready to start new conversation!")
         st.session_state["full_conversation"] = []
-        
-    if st.session_state.summarized == True:
+        st.sidebar.info("Full history cleared and ready to start new conversation!")
+
+    if st.session_state.summarized:
         st.sidebar.warning("The conversation has been summarized. Please start a new conversation if earlier details needed.")
-        
- 

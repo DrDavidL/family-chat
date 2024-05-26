@@ -288,11 +288,14 @@ site:www.cell.com OR site:www.nature.com OR site:www.springer.com OR site:www.wi
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
 
-    if prompt := st.chat_input("Ask me anything!"):
-        tweaked_prompt = prompt + "\n\n" + """"Provide two sections in your response.\n
+    prompt_guidance = "\n\n" + """"Provide two sections in your response.\n
                 ## Response Exclusively Using Provided Context:\n
                 ...
                 ## AI Commentary (from a domain expert perspective);\n """
+    if st.sidebar.checkbox("Just summarize the context (enter a space into the prompt)", value=False):
+        prompt_guidance = "\n\n" + """Summarize each context file indvidually. Work hard to identify and list the title, authors, publication year for each context file, and then generate an organized outline of impactful assertions from each file. Conclude with a 3 sentence summary."""
+    if prompt := st.chat_input("Ask me anything!"):
+        tweaked_prompt = prompt + prompt_guidance
         if not st.session_state.api_key:
             st.error("Please enter your OpenAI API Key", icon="🤖")
             st.stop()
