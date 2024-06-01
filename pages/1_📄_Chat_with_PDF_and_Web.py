@@ -7,6 +7,7 @@ import pandas as pd
 import requests
 
 import streamlit as st
+import markdown2
 
 from embedchain import App
 from embedchain.config import BaseLlmConfig
@@ -288,12 +289,13 @@ site:www.cell.com OR site:www.nature.com OR site:www.springer.com OR site:www.wi
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
 
-    prompt_guidance = "\n\n" + """"Provide two sections in your response.\n
-                ## Response Exclusively Using Provided Context:\n
-                ...
-                ## AI Commentary (from a domain expert perspective);\n """
+    prompt_guidance = "\n\n" + """Please structure your response into two distinct sections:\n
+                ## Contextual Response:\n
+                Provide a detailed response using only the information from the provided context.\n
+                ## Expert Commentary:\n
+                Offer insights or commentary from a domain expert's perspective."""
     if st.sidebar.checkbox("Just summarize the context (enter a space into the prompt)", value=False):
-        prompt_guidance = "\n\n" + """Summarize each context file indvidually. Work hard to identify and list the title, authors, publication year for each context file, and then generate an organized outline of impactful assertions from each file. Conclude with a 3 sentence summary."""
+        prompt_guidance = "\n\n" + "Please summarize each context file individually. Identify and list the title, authors, and publication year for each context file. Then, create an organized outline of the key assertions from each file. Conclude with a concise three-sentence summary."
     if prompt := st.chat_input("Ask me anything!"):
         tweaked_prompt = prompt + prompt_guidance
         if not st.session_state.api_key:
@@ -377,6 +379,14 @@ site:www.cell.com OR site:www.nature.com OR site:www.springer.com OR site:www.wi
     if st.session_state.messages_pdf:    
         if st.sidebar.button("Clear chat history."):
             st.session_state["messages_pdf"] = []
+            
+    if st.session_state.messages_pdf:
+        pdf_conversation_str = "\n\n".join(
+            f"👩‍⚕️: {msg['content']}" if msg["role"] == "user" else f"🤓: {msg['content']}"
+            for msg in st.session_state.messages_pdf
+        )
+        html = markdown2.markdown(pdf_conversation_str, extras=["tables"])
+        st.download_button('Download the PDF conversation', html, f'pdf_conversation.html', 'text/html')
 
 # @misc{embedchain,
 #   author = {Taranjeet Singh, Deshraj Yadav},
