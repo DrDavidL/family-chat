@@ -29,57 +29,93 @@ def parse_groq_stream(stream):
 
 # Function to summarize messages with a language model
 def summarize_messages_with_llm(model, messages):
-    conversation_to_summarize = " ".join([msg["content"] for msg in messages if msg["role"] != "system"])
-    if conversation_to_summarize:
-        try:
-            with st.spinner("Summarizing conversation..."):
-                summary_request_messages = [
-                    {"role": "system", "content": "Summarize the following conversation:"},
-                    {"role": "user", "content": conversation_to_summarize}
-                ]
-                summary_response = llm_call(model, summary_request_messages, stream=False)
-                summarized_response = f"Conversation summarized for brevity: {summary_response}"
-                st.session_state.summarized = True
-                return summarized_response
-        except Exception as e:
-            st.error(f"Error during summarization: {e}")
-    return "No content to summarize."
+    # Filter out system messages and join user messages into a single string
+    conversation_to_summarize = " ".join(msg["content"] for msg in messages if msg["role"] != "system")
+    
+    # Check if there is any conversation to summarize
+    if not conversation_to_summarize:
+        return "No content to summarize."
+    
+    # Prepare the request for summarization
+    summary_request_messages = [
+        {"role": "system", "content": "Summarize the following conversation:"},
+        {"role": "user", "content": conversation_to_summarize}
+    ]
+    
+    # Attempt to summarize the conversation
+    try:
+        with st.spinner("Summarizing conversation..."):
+            summary_response = llm_call(model, summary_request_messages, stream=False)
+            summarized_response = f"Conversation summarized for brevity: {summary_response}"
+            st.session_state.summarized = True
+            return summarized_response
+    except Exception as e:
+        st.error(f"Error during summarization: {e}")
+        return "Failed to summarize due to an error."
 
 # Function to enforce length constraints with summarization
 def enforce_length_constraint_with_summarization(model, messages, max_tokens=7000, system_role="system"):
+    # Calculate the maximum allowable length of messages
     max_length = max_tokens * 4
+    # Compute the total length of all messages
     total_length = sum(len(message["content"]) for message in messages)
+    
+    # Check if the total length exceeds the maximum length
     if total_length > max_length:
+        # Separate messages based on their role
         system_messages = [message for message in messages if message["role"] == system_role]
-        other_messages = [message for message in messages if message["role"] != system_role]
-        summarized_content = summarize_messages_with_llm(model, other_messages)
+        user_messages = [message for message in messages if message["role"] != system_role]
+        
+        # Summarize the user messages to reduce total length
+        summarized_content = summarize_messages_with_llm(model, user_messages)
+        
+        # Combine system messages with the summarized user messages
         reduced_messages = system_messages + [{"role": "user", "content": summarized_content}]
         return reduced_messages
+    
+    # Return original messages if within length constraints
     return messages
 
 def set_client(model):
+    # Determine the appropriate client based on the model type
     if model == "llama3-70b-8192":
+        # Use Groq API for specific Llama model
         client = Groq(api_key=st.secrets["GROQ_API_KEY"])
     elif model in ["gpt-4o", "gpt-3.5-turbo", "gpt-4-turbo"]:
+        # Use OpenAI API for GPT models
         client = OpenAI(base_url="https://api.openai.com/v1", api_key=st.secrets["OPENAI_API_KEY"])
     else:
-        client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key = st.secrets["OPENROUTER_API_KEY"])
+        # Default to OpenRouter API for other models
+        client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=st.secrets["OPENROUTER_API_KEY"])
     return client
     
 
 # Function to make API calls to the language model
 def llm_call(model, messages, stream=True):
+    # Set the appropriate client based on the model
     client = set_client(model)
-    completion = client.chat.completions.create(model=model, messages=messages, temperature=0.5, max_tokens=1000, stream=stream)
+    # Create a completion request with the language model
+    completion = client.chat.completions.create(
+        model=model, 
+        messages=messages, 
+        temperature=0.5, 
+        max_tokens=1000, 
+        stream=stream
+    )
     if stream:
+        # Initialize an empty response string and a Streamlit placeholder for streaming output
         full_response = ""
         placeholder = st.empty()
+        # Iterate through the streamed chunks of responses
         for chunk in completion:
+            # Check if there is content to add to the full response
             if chunk.choices[0].delta.content:
                 full_response += chunk.choices[0].delta.content
+                # Update the placeholder with the current full response
                 placeholder.markdown(full_response)
         return full_response
     else:
+        # Return the full response content when not streaming
         return completion.choices[0].message.content
 
 # Function to check user password
