@@ -197,7 +197,7 @@ if check_password():
         if not st.session_state.messages:
             central_tz = pytz.timezone('US/Central')
             timestamp = datetime.datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S")
-            st.session_state.messages.append({"role": "system", "content": f'[{timestamp}] {system}'})
+            st.session_state.messages.append({"role": "system", "content": f'Note conversation date and time:[{timestamp}] {system}'})
         
         if st.button("Update Personality"):
             central_tz = pytz.timezone('US/Central')
