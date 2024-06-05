@@ -176,23 +176,23 @@ if check_password():
     global system
     system = ""
 
-    def display_sidebar():
-        global system
+    def display_sidebar(system):
         st.title('Customization')
         st.session_state.model = st.selectbox("Model Options", (
             "anthropic/claude-3-haiku", "llama3-70b-8192", "anthropic/claude-3-sonnet",
             "anthropic/claude-3-opus", "gpt-4o", "gpt-3.5-turbo", "gpt-4-turbo", 
             "google/gemini-pro", "google/gemini-pro-1.5", "meta-llama/llama-3-70b-instruct:nitro"), index=1)
         
-        pick_prompt = st.radio("Pick a personality", ("Revise and improve an essay", "Regular user", "Expert Answers"), index=1)
-        if pick_prompt == "Revise and improve an essay":
-            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_essayist, height=100)
-        elif pick_prompt == "Regular user":
-            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_regular, height=100)
-        elif pick_prompt == "Expert Answers":
-            system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_expert, height=100)
+        prompt_options = {
+            "Revise and improve an essay": system_prompt_essayist,
+            "Regular user": system_prompt_regular,
+            "Expert Answers": system_prompt_expert
+        }
         
-        if st.session_state.messages == []:
+        pick_prompt = st.radio("Pick a personality", list(prompt_options.keys()), index=1)
+        system = st.sidebar.text_area("Make your own system prompt or use as is:", value=prompt_options[pick_prompt], height=100)
+        
+        if not st.session_state.messages:
             st.session_state.messages.append({"role": "system", "content": system})
         
         if st.button("Update Personality"):
@@ -200,7 +200,7 @@ if check_password():
 
     st.info("Type your questions at the bottom of the page!")
     with st.sidebar:
-        display_sidebar()
+        display_sidebar(system)
 
     # Display conversation history
     for message in st.session_state.full_conversation:
