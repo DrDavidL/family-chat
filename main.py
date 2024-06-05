@@ -10,8 +10,6 @@ from prompts import system_prompt_regular, system_prompt_essayist, system_prompt
 from embedchain import App
 from groq import Groq
 
-# Initialize Groq client
-groq_client = Groq(api_key=st.secrets['GROQ_API_KEY'])
 
 # Streamlit page configuration
 st.set_page_config(page_title='Family Chat', layout='centered', page_icon=':stethoscope:', initial_sidebar_state='expanded')
