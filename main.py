@@ -138,8 +138,8 @@ def llm_call(model, messages, stream=True):
         return completion.choices[0].message.content
 
 # Function to check user password
-def check_password():
-    def password_entered():
+def check_password() -> bool:
+    def password_entered() -> None:
         if st.session_state["password"] == st.secrets["password"]:
             st.session_state["password_correct"] = True
             app = App()
@@ -152,10 +152,12 @@ def check_password():
         st.text_input("Password", type="password", on_change=password_entered, key='password')
         st.write("*Please contact David Liebovitz, MD if you need an updated password for access.*")
         return False
-    elif not st.session_state["password_correct"]:
+
+    if not st.session_state["password_correct"]:
         st.text_input("Password", type="password", on_change=password_entered, key="password")
         st.error("😕 Password incorrect")
         return False
+
     return True
 
 # Main Streamlit app layout and functionality
