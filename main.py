@@ -49,9 +49,15 @@ def summarize_messages_with_llm(model, messages):
             summarized_response = f"Conversation summarized for brevity: {summary_response}"
             st.session_state.summarized = True
             return summarized_response
+    except requests.exceptions.RequestException as req_err:
+        st.error(f"Request error during summarization: {req_err}")
+        return "Failed to summarize due to a request error."
+    except json.JSONDecodeError as json_err:
+        st.error(f"JSON decode error during summarization: {json_err}")
+        return "Failed to summarize due to a JSON decode error."
     except Exception as e:
-        st.error(f"Error during summarization: {e}")
-        return "Failed to summarize due to an error."
+        st.error(f"Unexpected error during summarization: {e}")
+        return "Failed to summarize due to an unexpected error."
 
 # Function to enforce length constraints with summarization
 def enforce_length_constraint_with_summarization(model, messages, max_tokens=7000, system_role="system"):
