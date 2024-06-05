@@ -70,16 +70,26 @@ def enforce_length_constraint_with_summarization(model, messages, max_tokens=700
     
     # Check if the total length exceeds the maximum length
     if total_length > max_length:
-        # Separate messages based on their role
-        system_messages = [message for message in messages if message["role"] == system_role]
-        user_messages = [message for message in messages if message["role"] != system_role]
-        
-        # Summarize the user messages to reduce total length
-        summarized_content = summarize_messages_with_llm(model, user_messages)
-        
-        # Combine system messages with the summarized user messages
-        reduced_messages = system_messages + [{"role": "user", "content": summarized_content}]
-        return reduced_messages
+        try:
+            # Separate messages based on their role
+            system_messages = [message for message in messages if message["role"] == system_role]
+            user_messages = [message for message in messages if message["role"] != system_role]
+            
+            # Summarize the user messages to reduce total length
+            summarized_content = summarize_messages_with_llm(model, user_messages)
+            
+            # Combine system messages with the summarized user messages
+            reduced_messages = system_messages + [{"role": "user", "content": summarized_content}]
+            return reduced_messages
+        except requests.exceptions.RequestException as req_err:
+            st.error(f"Request error during summarization: {req_err}")
+            return messages
+        except json.JSONDecodeError as json_err:
+            st.error(f"JSON decode error during summarization: {json_err}")
+            return messages
+        except Exception as e:
+            st.error(f"Unexpected error during summarization: {e}")
+            return messages
     
     # Return original messages if within length constraints
     return messages
