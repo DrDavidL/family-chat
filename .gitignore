@@ -146,3 +146,5 @@ $RECYCLE.BIN/
 .aider.tags.cache.v3/cache.db
 .aider.chat.history.md
 .aider.tags.cache.v3/88/9c/e5735927e1e1919713a84e2a788d.val
+.aider*
+db/chroma.sqlite3
