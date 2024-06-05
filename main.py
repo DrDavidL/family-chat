@@ -6,6 +6,7 @@ import json
 import markdown2
 import requests
 import datetime
+import pytz
 
 from prompts import system_prompt_regular, system_prompt_essayist, system_prompt_expert
 from embedchain import App
@@ -194,11 +195,13 @@ if check_password():
         system = st.sidebar.text_area("Make your own system prompt or use as is:", value=prompt_options[pick_prompt], height=100)
         
         if not st.session_state.messages:
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            central_tz = pytz.timezone('US/Central')
+            timestamp = datetime.datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S")
             st.session_state.messages.append({"role": "system", "content": f'[{timestamp}] {system}'})
         
         if st.button("Update Personality"):
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            central_tz = pytz.timezone('US/Central')
+            timestamp = datetime.datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S")
             st.session_state.messages.append({"role": "system", "content": f'[{timestamp}] Ignore prior guidance and use this system prompt: {system}'})
 
     st.info("Type your questions at the bottom of the page!")
