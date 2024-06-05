@@ -175,10 +175,11 @@ def check_password() -> bool:
 st.title("💬 Family Chat")
 
 if check_password():
+    global system
     system = ""
 
     def display_sidebar():
-        nonlocal system
+        global system
         st.title('Customization')
         st.session_state.model = st.selectbox("Model Options", (
             "anthropic/claude-3-haiku", "llama3-70b-8192", "anthropic/claude-3-sonnet",
