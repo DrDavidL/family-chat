@@ -95,17 +95,15 @@ def enforce_length_constraint_with_summarization(model, messages, max_tokens=700
     return messages
 
 def set_client(model):
-    # Determine the appropriate client based on the model type
-    if model == "llama3-70b-8192":
-        # Use Groq API for specific Llama model
-        client = Groq(api_key=st.secrets["GROQ_API_KEY"])
-    elif model in ["gpt-4o", "gpt-3.5-turbo", "gpt-4-turbo"]:
-        # Use OpenAI API for GPT models
-        client = OpenAI(base_url="https://api.openai.com/v1", api_key=st.secrets["OPENAI_API_KEY"])
-    else:
-        # Default to OpenRouter API for other models
-        client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=st.secrets["OPENROUTER_API_KEY"])
-    return client
+    # Define the API keys and base URLs for different clients
+    clients = {
+        "llama3-70b-8192": Groq(api_key=st.secrets["GROQ_API_KEY"]),
+        "gpt-4o": OpenAI(base_url="https://api.openai.com/v1", api_key=st.secrets["OPENAI_API_KEY"]),
+        "gpt-3.5-turbo": OpenAI(base_url="https://api.openai.com/v1", api_key=st.secrets["OPENAI_API_KEY"]),
+        "gpt-4-turbo": OpenAI(base_url="https://api.openai.com/v1", api_key=st.secrets["OPENAI_API_KEY"]),
+    }
+    # Return the appropriate client or default to OpenRouter API
+    return clients.get(model, OpenAI(base_url="https://openrouter.ai/api/v1", api_key=st.secrets["OPENROUTER_API_KEY"]))
     
 
 # Function to make API calls to the language model
