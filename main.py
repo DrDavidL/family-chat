@@ -175,8 +175,7 @@ def check_password() -> bool:
 st.title("💬 Family Chat")
 
 if check_password():
-    st.info("Type your questions at the bottom of the page!")
-    with st.sidebar:
+    def display_sidebar():
         st.title('Customization')
         st.session_state.model = st.selectbox("Model Options", (
             "anthropic/claude-3-haiku", "llama3-70b-8192", "anthropic/claude-3-sonnet",
@@ -193,6 +192,10 @@ if check_password():
         
         if st.button("Update Personality"):
             st.session_state.messages.append({"role": "system", "content": f'Ignore prior guidance and use this system prompt: {system}'})
+
+    st.info("Type your questions at the bottom of the page!")
+    with st.sidebar:
+        display_sidebar()
 
     # Display conversation history
     for message in st.session_state.full_conversation:
