@@ -28,7 +28,7 @@ def parse_groq_stream(stream):
             yield chunk.choices[0].delta.content
 
 # Function to summarize messages with a language model
-def summarize_messages_with_llm(model, messages):
+def summarize_messages_with_llm(model, messages, char_limit=1000):
     # Filter out system messages and join user messages into a single string
     conversation_to_summarize = " ".join(msg["content"] for msg in messages if msg["role"] != "system")
     
@@ -47,6 +47,8 @@ def summarize_messages_with_llm(model, messages):
         with st.spinner("Summarizing conversation..."):
             summary_response = llm_call(model, summary_request_messages, stream=False)
             summarized_response = f"Conversation summarized for brevity: {summary_response}"
+            if len(summary_response) > char_limit:
+                summary_response = summary_response[:char_limit] + "..."
             st.session_state.summarized = True
             return summarized_response
     except requests.exceptions.RequestException as req_err:
