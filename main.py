@@ -103,7 +103,10 @@ def set_client(model):
         "gpt-4-turbo": OpenAI(base_url="https://api.openai.com/v1", api_key=st.secrets["OPENAI_API_KEY"]),
     }
     # Return the appropriate client or default to OpenRouter API
-    return clients.get(model, OpenAI(base_url="https://openrouter.ai/api/v1", api_key=st.secrets["OPENROUTER_API_KEY"]))
+    client = clients.get(model)
+    if client is None:
+        client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=st.secrets["OPENROUTER_API_KEY"])
+    return client
     
 
 # Function to make API calls to the language model
