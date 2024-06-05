@@ -109,33 +109,44 @@ def set_client(model):
     return client
     
 
-# Function to make API calls to the language model
-def llm_call(model, messages, stream=True):
-    # Set the appropriate client based on the model
-    client = set_client(model)
-    # Create a completion request with the language model
-    completion = client.chat.completions.create(
-        model=model, 
-        messages=messages, 
-        temperature=0.5, 
-        max_tokens=1000, 
-        stream=stream
-    )
-    if stream:
-        # Initialize an empty response string and a Streamlit placeholder for streaming output
-        full_response = ""
-        placeholder = st.empty()
-        # Iterate through the streamed chunks of responses
-        for chunk in completion:
-            # Check if there is content to add to the full response
-            if chunk.choices[0].delta.content:
-                full_response += chunk.choices[0].delta.content
-                # Update the placeholder with the current full response
-                placeholder.markdown(full_response)
-        return full_response
-    else:
-        # Return the full response content when not streaming
-        return completion.choices[0].message.content
+from typing import List, Dict, Any
+
+def llm_call(model: str, messages: List[Dict[str, Any]], stream: bool = True) -> str:
+    try:
+        # Set the appropriate client based on the model
+        client = set_client(model)
+        # Create a completion request with the language model
+        completion = client.chat.completions.create(
+            model=model, 
+            messages=messages, 
+            temperature=0.5, 
+            max_tokens=1000, 
+            stream=stream
+        )
+        if stream:
+            # Initialize an empty response string and a Streamlit placeholder for streaming output
+            full_response = ""
+            placeholder = st.empty()
+            # Iterate through the streamed chunks of responses
+            for chunk in completion:
+                # Check if there is content to add to the full response
+                if chunk.choices[0].delta.content:
+                    full_response += chunk.choices[0].delta.content
+                    # Update the placeholder with the current full response
+                    placeholder.markdown(full_response)
+            return full_response
+        else:
+            # Return the full response content when not streaming
+            return completion.choices[0].message.content
+    except requests.exceptions.RequestException as req_err:
+        st.error(f"Request error during LLM call: {req_err}")
+        return "Failed to get response due to a request error."
+    except json.JSONDecodeError as json_err:
+        st.error(f"JSON decode error during LLM call: {json_err}")
+        return "Failed to get response due to a JSON decode error."
+    except Exception as e:
+        st.error(f"Unexpected error during LLM call: {e}")
+        return "Failed to get response due to an unexpected error."
 
 # Function to check user password
 def check_password() -> bool:
