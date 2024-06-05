@@ -192,6 +192,9 @@ if check_password():
         elif pick_prompt == "Expert Answers":
             system = st.sidebar.text_area("Make your own system prompt or use as is:", value=system_prompt_expert, height=100)
         
+        if st.session_state.messages == []:
+            st.session_state.messages.append({"role": "system", "content": system})
+        
         if st.button("Update Personality"):
             st.session_state.messages.append({"role": "system", "content": f'Ignore prior guidance and use this system prompt: {system}'})
 
