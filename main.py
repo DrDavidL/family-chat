@@ -159,7 +159,8 @@ def check_password() -> bool:
         else:
             st.session_state["password_correct"] = False
 
-    if "password_correct" not in st.session_state:
+    st.session_state.setdefault("password_correct", False)
+    if not st.session_state["password_correct"]:
         st.text_input("Password", type="password", on_change=password_entered, key='password')
         st.write("*Please contact David Liebovitz, MD if you need an updated password for access.*")
         return False
