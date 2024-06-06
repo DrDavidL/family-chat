@@ -175,9 +175,7 @@ def get_ec_app(api_key):
     return app
 st.title("📄 Chat with PDFs or Web Sites!")
 # st.warning("Before using - clear the database on left sidebar! I'm working to make sure it starts empty! ")
-if "password_correct" not in st.session_state:
-    st.session_state["password_correct"] = False
-if not st.session_state["password_correct"]:
+if not st.session_state.get("password_correct", False):
     st.warning("Please return to the home page and enter the correct password to access this page.")
 else:
     
