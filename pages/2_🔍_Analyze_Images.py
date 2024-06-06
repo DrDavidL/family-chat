@@ -5,37 +5,6 @@ from PIL import Image
 import io
 from embedchain import App
 
-def check_password():
-    """Returns `True` if the user had the correct password."""
-
-    def password_entered():
-        """Checks whether a password entered by the user is correct."""
-        if st.session_state["password"] == st.secrets["password"]:
-            st.session_state["password_correct"] = True
-            app = App()
-            app.reset()
-            del st.session_state["password"]  # don't store password
-        else:
-            st.session_state["password_correct"] = False
-
-    if "password_correct" not in st.session_state:
-        # First run, show input for password.
-        # random_number = random.randint(1000000000, 9999999999)
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key='password'
-        )
-        st.write("*Please contact David Liebovitz, MD if you need an updated password for access.*")
-        return False
-    elif not st.session_state["password_correct"]:
-        # Password not correct, show input + error.
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
-        st.error("😕 Password incorrect")
-        return False
-    else:
-        # Password correct.
-        return True
 def encode_image(uploaded_file):
     # Convert the uploaded file to an image
     image = Image.open(uploaded_file)
@@ -91,8 +60,9 @@ def analyze_image(data_uri):
 
 st.title("🔍 Image Analyzer (and more!)")
 
-if check_password():
-
+if not st.session_state.get("password_correct", False):
+    st.warning("Please return to the home page and enter the correct password to access this page.")
+else:
     uploaded_file = st.file_uploader("Upload a JPEG or PNG image", type=["jpg", "jpeg", "png"])
 
     if uploaded_file is not None:

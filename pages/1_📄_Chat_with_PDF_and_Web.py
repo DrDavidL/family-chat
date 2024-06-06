@@ -53,17 +53,7 @@ def realtime_search(query, domains, max):
         return [], []
 
     return snippets, urls
-def create_table_from_text(text):
-    """ Example function to detect, extract, and format table-like data. More complex implementations might be necessary. """
-    # Placeholder function body; real implementation will depend on actual text structures
-    data = {
-        "Study and Design": ["ATLAS53 RCT, Superiority", "Ward et al54 RCT, Superiority"],
-        "No. enrolled": [446, 344],
-        "Outcome point": ["3 mo", "6 mo"],
-        "Primary Outcome": ["Success", "Success"]
-    }
-    df = pd.DataFrame(data)
-    return df.to_string(index=False)  # Returns a string that represents the DataFrame in table form.
+
 
 def clean_text(text):
     text = re.sub(r"([a-z])([A-Z])", r"\1 \2", text)
@@ -84,11 +74,7 @@ def refine_output(data):
             st.write("Text:\n", cleaned_text)
             st.write("\n")
 
-# def clean_text(text):
-#     """ Insert spaces before capital letters to reconstruct sentences, handle special characters. """
-#     text = re.sub(r"([a-z])([A-Z])", r"\1 \2", text)  # Space before capital letters
-#     text = text.replace('-', ' ').replace(' .', '.')  # Replace dashes, correct spacings before periods
-#     return text
+
 
 def process_data(data):
     # Sort the data based on the score in descending order and select the top three
@@ -99,40 +85,6 @@ def process_data(data):
         cleaned_text = clean_text(text)
         st.write(f"Score: {info['score']}\nText: {cleaned_text}\n")
 
-# if st.session_state.messages_web is not None:
-#     app = App()
-#     app.reset()
-# def check_password():
-#     """Returns `True` if the user had the correct password."""
-
-#     def password_entered():
-#         """Checks whether a password entered by the user is correct."""
-#         if st.session_state["password"] == st.secrets["password"]:
-#             st.session_state["password_correct"] = True
-#             app = App()
-#             app.reset()
-#             del st.session_state["password"]  # don't store password
-#         else:
-#             st.session_state["password_correct"] = False
-
-#     if "password_correct" not in st.session_state:
-#         # First run, show input for password.
-#         # random_number = random.randint(1000000000, 9999999999)
-#         st.text_input(
-#             "Password", type="password", on_change=password_entered, key='password'
-#         )
-#         st.write("*Please contact David Liebovitz, MD if you need an updated password for access.*")
-#         return False
-#     elif not st.session_state["password_correct"]:
-#         # Password not correct, show input + error.
-#         st.text_input(
-#             "Password", type="password", on_change=password_entered, key="password"
-#         )
-#         st.error("😕 Password incorrect")
-#         return False
-#     else:
-#         # Password correct.
-#         return True
 def embedchain_bot(db_path, api_key):
     return App.from_config(
         config={
@@ -173,6 +125,8 @@ def get_ec_app(api_key):
         app = embedchain_bot(db_path, api_key)
         st.session_state.app = app
     return app
+
+
 st.title("📄 Chat with PDFs or Web Sites!")
 # st.warning("Before using - clear the database on left sidebar! I'm working to make sure it starts empty! ")
 if not st.session_state.get("password_correct", False):
@@ -185,8 +139,6 @@ else:
     # PDF Additions
     with st.sidebar:
         st.header("Give your AI Knowledge! Upload PDF Files or Search the Web")
-        # openai_access_token = st.text_input("OpenAI API Key", key="api_key", type="password")
-        # "WE DO NOT STORE YOUR OPENAI KEY."
         # "Just paste your OpenAI API key here and we'll use it to power the chatbot. [Get your OpenAI API key](https://platform.openai.com/api-keys)"  # noqa: E501
         openai_access_token = st.secrets["OPENAI_API_KEY"]
         st.session_state.api_key = openai_access_token
@@ -264,18 +216,10 @@ site:www.cell.com OR site:www.nature.com OR site:www.springer.com OR site:www.wi
                     st.markdown(snippet)
             else:
                 st.markdown("No search results found!")
-    # styled_caption = '<p style="font-size: 17px; color: #aaa;">🚀 An <a href="https://github.com/embedchain/embedchain">Embedchain</a> app powered by OpenAI!</p>'  # noqa: E501
-    # st.markdown(styled_caption, unsafe_allow_html=True)
+
 
     if "messages_pdf" not in st.session_state:
         st.session_state.messages_pdf = [
-            # {
-            #     "role": "system",
-            #     "content": """You receive context from PDF docs or websites. You provide two sections in your response.\n
-            #     ## Response Using Provided Context:\n
-            #     ...
-            #     ## AI Commentary from a domain expert perspective;\n """,
-            # },
             {
                 "role": "assistant",
                 "content": """
@@ -396,4 +340,4 @@ site:www.cell.com OR site:www.nature.com OR site:www.springer.com OR site:www.wi
 #   publisher = {GitHub},
 #   journal = {GitHub repository},
 #   howpublished = {\url{https://github.com/embedchain/embedchain}},
-# }from hello import hello
+# }
