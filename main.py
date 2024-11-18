@@ -184,7 +184,7 @@ if check_password():
         st.session_state.model = st.selectbox("Model Options", (
             "anthropic/claude-3-haiku", "llama3-70b-8192", "anthropic/claude-3-sonnet",
             "anthropic/claude-3-opus", "gpt-4o", "gpt-3.5-turbo", "gpt-4-turbo", 
-            "google/gemini-pro", "google/gemini-pro-1.5", "meta-llama/llama-3-70b-instruct:nitro"), index=1)
+            "google/gemini-pro", "google/gemini-pro-1.5", "meta-llama/llama-3-70b-instruct:nitro"), index=4)
         
         prompt_options = {
             "Revise and improve an essay": system_prompt_essayist,
