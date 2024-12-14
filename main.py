@@ -131,10 +131,10 @@ def enforce_length_constraint_with_summarization(model, messages, max_tokens=700
 def set_client(model):
     # Define the API keys and base URLs for different clients
     clients = {
-        "llama3-70b-8192": Groq(api_key=st.secrets["GROQ_API_KEY"]),
+        "llama-3.3-70b-versatile": Groq(api_key=st.secrets["GROQ_API_KEY"]),
+        "gemma2-9b-it": Groq(api_key=st.secrets["GROQ_API_KEY"]),
         "gpt-4o": OpenAI(base_url="https://api.openai.com/v1", api_key=st.secrets["OPENAI_API_KEY"]),
-        "gpt-3.5-turbo": OpenAI(base_url="https://api.openai.com/v1", api_key=st.secrets["OPENAI_API_KEY"]),
-        "gpt-4-turbo": OpenAI(base_url="https://api.openai.com/v1", api_key=st.secrets["OPENAI_API_KEY"]),
+        "gpt-4o-mini": OpenAI(base_url="https://api.openai.com/v1", api_key=st.secrets["OPENAI_API_KEY"]),
     }
     # Return the appropriate client or default to OpenRouter API
     client = clients.get(model)
@@ -219,9 +219,8 @@ if check_password():
     def display_sidebar(system):
         st.title('Customization')
         st.session_state.model = st.selectbox("Model Options", (
-            "anthropic/claude-3-haiku", "llama3-70b-8192", "anthropic/claude-3-sonnet",
-            "anthropic/claude-3-opus", "gpt-4o", "gpt-3.5-turbo", "gpt-4-turbo", 
-            "google/gemini-pro", "google/gemini-pro-1.5", "meta-llama/llama-3-70b-instruct:nitro"), index=4)
+            "gemma2-9b-it", "llama-3.3-70b-versatile",
+            "gpt-4o", "gpt-4o-mini", ), index=2)
         
         prompt_options = {
             "Revise and improve an essay": system_prompt_essayist,
