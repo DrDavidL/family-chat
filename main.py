@@ -5,12 +5,15 @@ import random
 import json
 import markdown2
 import requests
-import datetime
+from datetime import datetime
 import pytz
 
 from prompts import system_prompt_regular, system_prompt_essayist, system_prompt_expert
 from embedchain import App
 from groq import Groq
+
+from tavily import TavilyClient
+from datetime import datetime
 
 
 # Streamlit page configuration
@@ -20,6 +23,37 @@ st.set_page_config(page_title='Family Chat', layout='centered', page_icon=':stet
 for key in ["response", "messages", "full_conversation", "summarized"]:
     if key not in st.session_state:
         st.session_state[key] = "" if key == "response" else [] if key in ["messages", "full_conversation"] else False
+
+# Function to rephrase the query
+def rephrase_query(original_query):
+    current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    client = OpenAI()
+    rephrased_response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": f"""Analyze the user input, do not answer it. Instead, return an optimized version for direct submission to an Internet search engine to retrieve sites with the answer. Unless the 
+             user specifies a date and time, do not include in the query. Of note, the current date and time is Current Date and Time: {current_datetime}"""},
+            {"role": "user", "content": original_query},
+        ],
+        temperature=0.3,
+    )
+    return rephrased_response.choices[0].message.content
+
+# Function to retrieve content using Tavily API
+def retrieve_content_with_tavily(query):
+    tavily_client = TavilyClient(api_key=st.secrets["TAVILY_API_KEY"])
+    response = tavily_client.search(query=query, search_depth="advanced")
+    results = response.get("results", [])
+
+    # Format results for display
+    formatted_results = []
+    for result in results:
+        formatted_results.append(
+            f"**Title:** {result['title']}\n\n**URL:** {result['url']}\n\n**Content:** {result['content']}\n\n"
+        )
+    return formatted_results, response
+
+
 
 # Function to parse Groq stream data
 def parse_groq_stream(stream):
@@ -176,7 +210,10 @@ def check_password() -> bool:
 st.title("💬 Family Chat")
 
 if check_password():
-    global system
+    global system 
+
+    
+
     system = ""
 
     def display_sidebar(system):
@@ -193,11 +230,12 @@ if check_password():
         }
         
         pick_prompt = st.radio("Pick a personality", list(prompt_options.keys()), index=1)
+        
         system = st.sidebar.text_area("Make your own system prompt or use as is:", value=prompt_options[pick_prompt], height=100)
         
         if not st.session_state.messages:
             central_tz = pytz.timezone('US/Central')
-            timestamp = datetime.datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S")
+            timestamp = datetime.now(central_tz).strftime("%Y-%m-%d %H:%M:%S")
             st.session_state.messages.append({"role": "system", "content": f'Note user likely location (Chicago) date and time:[{timestamp}] {system}'})
         
         if st.button("Update Personality"):
@@ -216,8 +254,23 @@ if check_password():
             st.markdown(message["content"])
 
     # Accept user input and process it
+    use_current_internet_info = st.checkbox("Use current internet information", help="If checked, the system will create a search query for Tavily and return results to help answer your question.")
     if prompt := st.chat_input("What's up?"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
+        if use_current_internet_info:
+            if st.session_state.messages:
+                last_message = st.session_state.messages[-1]
+            else:
+                last_message = ""
+            query = rephrase_query(f'Prior query for context: {last_message} and current question: {prompt}')
+            results, response = retrieve_content_with_tavily(query)
+            if results:
+                st.session_state.messages.append({"role": "user", "content": f"Here are some search results {results} to help answer your question: {prompt}"})
+                with st.expander("Search Results"):
+                    for result in results:
+                        st.markdown(result)
+                # st.session_state.full_conversation.append({"role": "system", "content": f"Here are some results to help answer your question: {results}"})
+        else:
+            st.session_state.messages.append({"role": "user", "content": prompt})
         st.session_state.full_conversation.append({"role": "user", "content": prompt})
         with st.chat_message("user", avatar="👩‍⚕️"):
             st.markdown(prompt)
