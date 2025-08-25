@@ -88,7 +88,7 @@ mypy-extensions==1.0.0 ; python_full_version > "3.10.0" and python_version < "3.
 numpy==1.26.4 ; python_full_version > "3.10.0" and python_version < "3.12"
 oauthlib==3.2.2 ; python_full_version > "3.10.0" and python_version < "3.12"
 onnxruntime==1.17.3 ; python_full_version > "3.10.0" and python_version < "3.12"
-openai==1.25.1 ; python_full_version > "3.10.0" and python_version < "3.12"
+openai==1.99.9 ; python_full_version > "3.10.0" and python_version < "3.12"
 opentelemetry-api==1.24.0 ; python_full_version > "3.10.0" and python_version < "3.12"
 opentelemetry-exporter-otlp-proto-common==1.24.0 ; python_full_version > "3.10.0" and python_version < "3.12"
 opentelemetry-exporter-otlp-proto-grpc==1.24.0 ; python_full_version > "3.10.0" and python_version < "3.12"
@@ -119,7 +119,7 @@ pypika==0.48.9 ; python_full_version > "3.10.0" and python_version < "3.12"
 pyproject-hooks==1.1.0 ; python_full_version > "3.10.0" and python_version < "3.12"
 pyreadline3==3.4.1 ; sys_platform == "win32" and python_full_version > "3.10.0" and python_version < "3.12"
 pysbd==0.3.4 ; python_full_version > "3.10.0" and python_version < "3.12"
-pysqlite3-binary 
+# pysqlite3-binary 
 # pysqlite3==0.5.2 ; python_full_version > "3.10.0" and python_version < "3.12"
 python-dateutil==2.9.0.post0 ; python_full_version > "3.10.0" and python_version < "3.12"
 python-dotenv==1.0.1 ; python_full_version > "3.10.0" and python_version < "3.12"

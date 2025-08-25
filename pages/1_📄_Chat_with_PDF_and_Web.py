@@ -3,7 +3,6 @@ import queue
 import re
 import tempfile
 import threading
-import pandas as pd
 import requests
 
 import streamlit as st
@@ -14,7 +13,7 @@ from embedchain.config import BaseLlmConfig
 from embedchain.helpers.callbacks import (StreamingStdOutCallbackHandlerYield,
                                           generate)
 # __import__('pysqlite3')
-import sys
+
 # sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 @st.cache_data

@@ -1,7 +1,6 @@
 # app.py
 import streamlit as st
 from openai import OpenAI
-import random
 import json
 import markdown2
 import requests
@@ -13,7 +12,7 @@ from embedchain import App
 from groq import Groq
 
 from tavily import TavilyClient
-from datetime import datetime
+from typing import List, Dict, Any
 
 
 # Streamlit page configuration
@@ -131,6 +130,7 @@ def enforce_length_constraint_with_summarization(model, messages, max_tokens=700
 def set_client(model):
     # Define the API keys and base URLs for different clients
     clients = {
+        "gpt-5-mini": OpenAI(base_url="https://api.openai.com/v1", api_key=st.secrets["OPENAI_API_KEY"]),
         "llama-3.3-70b-versatile": Groq(api_key=st.secrets["GROQ_API_KEY"]),
         "gemma2-9b-it": Groq(api_key=st.secrets["GROQ_API_KEY"]),
         "gpt-4o": OpenAI(base_url="https://api.openai.com/v1", api_key=st.secrets["OPENAI_API_KEY"]),
@@ -143,18 +143,22 @@ def set_client(model):
     return client
     
 
-from typing import List, Dict, Any
+
 
 def llm_call(model: str, messages: List[Dict[str, Any]], stream: bool = True) -> str:
     try:
         # Set the appropriate client based on the model
         client = set_client(model)
         # Create a completion request with the language model
+        if model == "gpt-5-mini":
+            temperature = 1.0
+        else:
+            temperature = 0.5
         completion = client.chat.completions.create(
             model=model, 
             messages=messages, 
-            temperature=0.5, 
-            max_tokens=1000, 
+            temperature=temperature, 
+            max_completion_tokens=2000, 
             stream=stream
         )
         if stream:
@@ -219,8 +223,8 @@ if check_password():
     def display_sidebar(system):
         st.title('Customization')
         st.session_state.model = st.selectbox("Model Options", (
-            "gemma2-9b-it", "llama-3.3-70b-versatile",
-            "gpt-4o", "gpt-4o-mini", ), index=2)
+            "gpt-5-mini", "gemma2-9b-it", "llama-3.3-70b-versatile",
+            "gpt-4o", "gpt-4o-mini", ), index=0)
         
         prompt_options = {
             "Revise and improve an essay": system_prompt_essayist,
