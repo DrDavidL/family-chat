@@ -114,7 +114,7 @@ pydantic-core==2.18.2 ; python_full_version > "3.10.0" and python_version < "3.1
 pydantic==2.7.1 ; python_full_version > "3.10.0" and python_version < "3.12"
 pydeck==0.9.0 ; python_full_version > "3.10.0" and python_version < "3.12"
 pygments==2.18.0 ; python_full_version > "3.10.0" and python_version < "3.12"
-pypdf==4.2.0 ; python_full_version > "3.10.0" and python_version < "3.12"
+pypdf==6.6.2 ; python_full_version > "3.10.0" and python_version < "3.12"
 pypika==0.48.9 ; python_full_version > "3.10.0" and python_version < "3.12"
 pyproject-hooks==1.1.0 ; python_full_version > "3.10.0" and python_version < "3.12"
 pyreadline3==3.4.1 ; sys_platform == "win32" and python_full_version > "3.10.0" and python_version < "3.12"
